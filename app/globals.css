@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-navy: #1a2e4a;
+  --color-gold: #b89650;
+  --color-cream: #faf8f3;
+}
+
+html {
+  scroll-behavior: smooth;
+  /* Offset anchor scrolling so the fixed navbar doesn't cover headings */
+  scroll-padding-top: 88px;
+}
+
+body {
+  background-color: var(--color-cream);
+  color: #555555;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+@layer components {
+  .container-luxe {
+    @apply mx-auto w-full max-w-content px-6 md:px-10;
+  }
+
+  .eyebrow {
+    @apply font-inter text-xs uppercase tracking-[0.25em] text-gold;
+  }
+
+  .section-title {
+    @apply font-playfair text-4xl md:text-5xl text-navy leading-tight;
+  }
+
+  .btn-gold {
+    @apply inline-flex items-center justify-center bg-gold text-navy font-inter
+      text-sm font-medium uppercase tracking-[0.15em] px-8 py-4
+      transition-all duration-300 ease-luxe hover:bg-[#a8853f]
+      hover:-translate-y-[2px] hover:shadow-[0_8px_24px_-8px_rgba(184,150,80,0.5)];
+  }
+
+  .btn-outline {
+    @apply inline-flex items-center justify-center border border-navy text-navy
+      font-inter text-sm font-medium uppercase tracking-[0.15em] px-8 py-4
+      transition-all duration-300 ease-luxe hover:bg-navy hover:text-cream;
+  }
+
+  .link-arrow {
+    @apply inline-flex items-center gap-2 font-cormorant italic text-xl text-navy
+      transition-colors duration-300 hover:text-gold;
+  }
+
+  .gold-rule {
+    @apply h-px w-16 bg-gold;
+  }
+}
+
+/* Thin, refined scrollbar in supporting browsers */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #b89650 transparent;
+}
