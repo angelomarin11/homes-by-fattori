@@ -6,6 +6,7 @@
 // ============================================================================
 
 import { getDb } from "@/lib/db";
+import { verifyStripeSignature } from "@/lib/stripe-verify";
 import crypto from "crypto";
 
 export const dynamic = "force-dynamic";
@@ -25,9 +26,12 @@ export async function POST(req) {
     if (ev.type !== "order.paid" && ev.type !== "charge.paid") return new Response("ignored", { status: 200 });
     txnId = ev.data?.metadata?.txn_id;
   } else {
-    // Stripe: validar com stripe-signature (simplificado; em produção use a lib oficial)
+    // Stripe: HMAC do header stripe-signature com tolerância anti-replay
+    const sig = req.headers.get("stripe-signature") || "";
+    if (!verifyStripeSignature(raw, sig, process.env.STRIPE_WEBHOOK_SECRET)) return new Response("bad sig", { status: 401 });
     const ev = JSON.parse(raw);
-    if (ev.type !== "payment_intent.succeeded") return new Response("ignored", { status: 200 });
+    // Checkout hospedado emite checkout.session.completed; intents diretos, payment_intent.succeeded
+    if (ev.type !== "checkout.session.completed" && ev.type !== "payment_intent.succeeded") return new Response("ignored", { status: 200 });
     txnId = ev.data?.object?.metadata?.txn_id;
   }
   if (!txnId) return new Response("no txn", { status: 200 });

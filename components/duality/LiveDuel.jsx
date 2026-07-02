@@ -210,7 +210,7 @@ function LiveInner({ duelId, demo }) {
       if (!res.ok) { show(data.error || "erro"); setBuy(null); return; }
       saveProfile({ name: name.trim(), flair, crew: myCrew });
       setBuy({ phase: "qr", kind, ...data });
-    } catch { show("falha de rede"); setBuy(null); }
+    } catch { show(t.net_err); setBuy(null); }
   }
 
   // enquanto o QR está aberto, espera o webhook marcar a transação como paga
@@ -240,7 +240,7 @@ function LiveInner({ duelId, demo }) {
       </div>
     </Shell>
   );
-  if (status === "notfound") return <Shell><p style={ST.center}>disputa não encontrada</p></Shell>;
+  if (status === "notfound") return <Shell><p style={ST.center}>{t.not_found}</p></Shell>;
 
   const isA = side === "a", accent = isA ? cfg.colorA : cfg.colorB;
   const skin = skinOf(cfg.skin);
@@ -438,11 +438,16 @@ function LiveInner({ duelId, demo }) {
                 {buy.gateway === "pix" ? (
                   <>
                     {buy.qrCodeUrl ? <img src={buy.qrCodeUrl} alt="QR Pix" style={{ ...S.qr, objectFit: "contain" }} /> : <div style={S.qr}><div style={S.qrInner} /></div>}
-                    {buy.qrCode && <button onClick={() => { navigator.clipboard.writeText(buy.qrCode); show(t.copied); }} style={{ ...S.sheetCta, background: "#1a1722", color: INK, marginBottom: 10, border: `1px solid ${LINE}` }}>Pix copia-e-cola</button>}
+                    {buy.qrCode && <button onClick={() => { navigator.clipboard.writeText(buy.qrCode); show(t.copied); }} style={{ ...S.sheetCta, background: "#1a1722", color: INK, marginBottom: 10, border: `1px solid ${LINE}` }}>{t.pix_copy}</button>}
                     <p style={{ ...S.sheetP, textAlign: "center", marginBottom: 12 }}>{t.pay_pix} · {t.processing}</p>
                   </>
                 ) : (
-                  <p style={{ ...S.sheetP, textAlign: "center", margin: "20px 0" }}>Cartão internacional entra depois da validação com Pix. (Stripe Connect já suportado no backend.)</p>
+                  <>
+                    {/* internacional: checkout hospedado do Stripe no idioma do comprador */}
+                    <a href={buy.checkoutUrl} target="_blank" rel="noopener noreferrer"
+                      style={{ ...S.sheetCta, background: accent, color: pickText(accent), display: "block", textAlign: "center", textDecoration: "none", marginBottom: 10 }}>{t.card_btn}</a>
+                    <p style={{ ...S.sheetP, textAlign: "center", marginBottom: 12 }}>{t.card_note}</p>
+                  </>
                 )}
                 {buy.kind === "eternal" && <p style={S.term}>{bold(t.term)}</p>}
               </>

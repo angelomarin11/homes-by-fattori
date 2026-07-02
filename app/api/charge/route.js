@@ -6,7 +6,7 @@
 // ============================================================================
 
 import { getDb } from "@/lib/db";
-import { gatewayFor, computeSplit, createPixOrder, createStripeIntent } from "@/lib/payments";
+import { gatewayFor, computeSplit, createPixOrder, createStripeCheckout } from "@/lib/payments";
 
 export const dynamic = "force-dynamic";
 
@@ -84,8 +84,12 @@ export async function POST(req) {
         txnId: txn.id, creatorRecipient: duel.creators.pagarme_recipient_id, positions,
       });
     } else {
-      pay = await createStripeIntent({
-        gross, currency: duel.currency, txnId: txn.id, creatorAccount: duel.creators.stripe_account_id,
+      // volta pro link público da disputa depois do checkout hospedado
+      const origin = req.headers.get("origin") || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+      pay = await createStripeCheckout({
+        gross, currency: duel.currency, description: `${duel.title} · ${side === "a" ? duel.side_a : duel.side_b}`,
+        txnId: txn.id, creatorAccount: duel.creators.stripe_account_id,
+        returnUrl: `${origin}/d/${duelId}`,
       });
     }
     await db.from("transactions").update({ gateway_id: pay.gatewayId }).eq("id", txn.id);
