@@ -23,6 +23,28 @@ Abra http://localhost:3000
 2. **Variáveis:** preencha `.env.local` com as chaves do Supabase, Pagar.me e Stripe.
 3. **Deploy:** conecte ao Vercel. O `vercel.json` já configura o cron de vitória.
 
+## Internacional
+
+O produto opera em dois circuitos de pagamento, decididos pela **moeda da disputa**
+(`duels.currency`, definida pelo país do criador):
+
+| | Brasil | Internacional |
+|---|---|---|
+| Moeda | BRL | USD, EUR, … |
+| Gateway | Pagar.me (Pix) | **Stripe Checkout** (hospedado) |
+| Split 70/30 | split nativo do pedido | `transfer_data` + `application_fee_amount` (Connect) |
+| Criador recebe | `creators.pagarme_recipient_id` | `creators.stripe_account_id` (conta Express) |
+| Webhook | `order.paid` (HMAC x-hub-signature) | `checkout.session.completed` (HMAC `stripe-signature` verificado com anti-replay) |
+
+- O checkout do Stripe abre no idioma do comprador, com Apple Pay/Google Pay e SCA —
+  nenhuma UI de cartão pra manter.
+- A interface detecta PT/EN/ES no navegador (dicionário em `components/duality/i18n.js`;
+  adicionar um idioma = adicionar um bloco no `DICT`).
+- Onboarding de criador internacional: criar conta **Stripe Connect Express** pra ele e
+  salvar o id em `creators.stripe_account_id` (mesma curadoria fechada do Brasil).
+- Estratégia: valide o Brasil com Pix primeiro; ligar o internacional é preencher
+  `STRIPE_SECRET_KEY`/`STRIPE_WEBHOOK_SECRET` e aprovar criadores com conta Connect.
+
 ## Importante antes de publicar
 
 Este projeto recebe dinheiro e faz split entre criadores. Veja `CLAUDE.md` e o README do backend para o que é obrigatório legalmente (CNPJ, gateways, contador, advogado). Comece validando no Brasil com Pix, uma disputa só, com um pagamento real — antes de internacionalizar.

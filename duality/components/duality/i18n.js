@@ -72,6 +72,11 @@ export const DICT = {
     earn_title: "SIMULADOR DE GANHOS", earn_people: "apoiadores", earn_avg: "gasto médio",
     earn_you: "você recebe", earn_platform: "plataforma",
     earn_note: "estimativa ilustrativa — o split real é feito pelo gateway de pagamento",
+    not_found: "disputa não encontrada",
+    net_err: "falha de rede — tente de novo",
+    pix_copy: "Pix copia-e-cola",
+    card_btn: "Pagar com cartão →",
+    card_note: "checkout seguro do Stripe · Apple Pay e Google Pay · os blocos pintam quando o pagamento confirmar",
   },
   en: {
     code: "en", flag: "🇺🇸", name: "English",
@@ -139,6 +144,11 @@ export const DICT = {
     earn_title: "EARNINGS SIMULATOR", earn_people: "supporters", earn_avg: "avg spend",
     earn_you: "you receive", earn_platform: "platform",
     earn_note: "illustrative estimate — the real split is done by the payment gateway",
+    not_found: "battle not found",
+    net_err: "network error — try again",
+    pix_copy: "Copy Pix code",
+    card_btn: "Pay by card →",
+    card_note: "secure Stripe checkout · Apple Pay & Google Pay · blocks paint once payment confirms",
   },
   es: {
     code: "es", flag: "🇪🇸", name: "Español",
@@ -206,6 +216,11 @@ export const DICT = {
     earn_title: "SIMULADOR DE GANANCIAS", earn_people: "seguidores", earn_avg: "gasto medio",
     earn_you: "tú recibes", earn_platform: "plataforma",
     earn_note: "estimación ilustrativa — el split real lo hace la pasarela de pago",
+    not_found: "disputa no encontrada",
+    net_err: "fallo de red — inténtalo de nuevo",
+    pix_copy: "Copiar código Pix",
+    card_btn: "Pagar con tarjeta →",
+    card_note: "checkout seguro de Stripe · Apple Pay y Google Pay · los bloques se pintan al confirmarse el pago",
   },
 };
 
