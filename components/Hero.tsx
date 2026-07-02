@@ -1,7 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import HouseIllustration from "./HouseIllustration";
+import AnimatedHouse from "./AnimatedHouse";
+import Parallax from "./Parallax";
 
 export default function Hero() {
   return (
@@ -49,10 +50,10 @@ export default function Hero() {
           transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
           className="order-1 flex justify-center lg:order-2"
         >
-          <div className="relative w-full max-w-lg">
+          <Parallax offset={24} className="relative w-full max-w-lg">
             <div className="absolute -inset-4 -z-10 rounded-sm border border-gold/30" />
-            <HouseIllustration className="h-auto w-full" />
-          </div>
+            <AnimatedHouse className="h-auto w-full" />
+          </Parallax>
         </motion.div>
       </div>
     </section>

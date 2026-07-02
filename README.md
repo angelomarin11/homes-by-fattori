@@ -9,7 +9,12 @@ Deploy-ready for Vercel.
 
 Highlights:
 
-- **Zero external requests** — all placeholder artwork is local inline SVG.
+- **Zero external requests** — all placeholder artwork is local inline SVG,
+  in a watercolor-and-ink style, clearly labelled "reference digital
+  illustration" until real scans are supplied.
+- **Motion** — self-drawing hero illustration, scroll-linked parallax,
+  Ken Burns hover on portfolio pieces, animated lightbox, and an ambient
+  studio-film section (drop your video at `public/videos/studio.mp4`).
 - **SEO** — JSON-LD structured data (Organization, Product offers, FAQ),
   build-time generated Open Graph image, sitemap, robots, canonical URL.
 - **Accessibility** — skip link, visible focus rings, `prefers-reduced-motion`
@@ -105,11 +110,15 @@ site looks finished out of the box. To use real artwork:
    add an `image` field to each entry in the `works` array (e.g.
    `image: "/images/portfolio-01.jpg"`) — real scans automatically replace
    the SVG sketches.
-4. **Hero** — the hero uses an inline SVG
-   ([`components/HouseIllustration.tsx`](components/HouseIllustration.tsx)). To
-   use a real portrait instead, replace `<HouseIllustration />` in
+4. **Hero** — the hero uses a self-drawing inline SVG
+   ([`components/AnimatedHouse.tsx`](components/AnimatedHouse.tsx)). To use a
+   real portrait instead, replace `<AnimatedHouse />` in
    [`components/Hero.tsx`](components/Hero.tsx) with a `next/image`.
-5. **Social share (OG)** — the OG image is generated at build time from
+5. **Studio film** — add your process/time-lapse video at
+   `public/videos/studio.mp4` (H.264 MP4, ~30–60s, no audio needed — it plays
+   muted). Until the file exists, the section shows the self-drawing house
+   animation instead.
+6. **Social share (OG)** — the OG image is generated at build time from
    [`app/opengraph-image.tsx`](app/opengraph-image.tsx); edit it there, or
    delete that file and point `openGraph.images` in
    [`app/layout.tsx`](app/layout.tsx) at `/images/og.jpg`.
@@ -142,12 +151,12 @@ homes-by-fattori/
 │   ├── robots.ts             # /robots.txt
 │   └── api/contact/route.ts  # Resend form handler (honeypot + rate limit)
 ├── components/
-│   ├── Navbar.tsx            HouseIllustration.tsx  Reveal.tsx
+│   ├── Navbar.tsx            AnimatedHouse.tsx      Reveal.tsx
 │   ├── Hero.tsx              TrustBar.tsx           About.tsx
 │   ├── Portfolio.tsx         PortraitSketch.tsx     HowItWorks.tsx
-│   ├── Pricing.tsx           Testimonials.tsx       ForRealtors.tsx
-│   ├── Faq.tsx               OrderForm.tsx          Footer.tsx
-│   └── MotionProvider.tsx
+│   ├── StudioFilm.tsx        Pricing.tsx            Testimonials.tsx
+│   ├── ForRealtors.tsx       Faq.tsx                OrderForm.tsx
+│   └── Footer.tsx            Parallax.tsx           MotionProvider.tsx
 ├── public/images/
 ├── tailwind.config.ts  next.config.mjs  postcss.config.mjs
 ├── .env.local.example

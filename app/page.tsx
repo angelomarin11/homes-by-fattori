@@ -4,6 +4,7 @@ import TrustBar from "@/components/TrustBar";
 import About from "@/components/About";
 import Portfolio from "@/components/Portfolio";
 import HowItWorks from "@/components/HowItWorks";
+import StudioFilm from "@/components/StudioFilm";
 import Pricing from "@/components/Pricing";
 import Testimonials from "@/components/Testimonials";
 import ForRealtors from "@/components/ForRealtors";
@@ -21,6 +22,7 @@ export default function Home() {
         <About />
         <Portfolio />
         <HowItWorks />
+        <StudioFilm />
         <Pricing />
         <Testimonials />
         <ForRealtors />

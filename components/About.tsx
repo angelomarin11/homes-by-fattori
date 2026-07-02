@@ -1,4 +1,5 @@
 import Reveal from "./Reveal";
+import Parallax from "./Parallax";
 
 /**
  * Elegant local placeholder until a real artist photograph is supplied —
@@ -66,10 +67,10 @@ export default function About() {
       <div className="container-luxe grid items-center gap-14 lg:grid-cols-2 lg:gap-20">
         {/* Left — portrait of the artist */}
         <Reveal className="order-2 lg:order-1">
-          <div className="relative mx-auto max-w-md">
+          <Parallax offset={28} className="relative mx-auto max-w-md">
             <div className="absolute -bottom-4 -left-4 -z-10 h-full w-full border border-gold/40" />
             <ArtistPlaceholder />
-          </div>
+          </Parallax>
         </Reveal>
 
         {/* Right — text */}

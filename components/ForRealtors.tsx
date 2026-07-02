@@ -1,4 +1,5 @@
 import Reveal from "./Reveal";
+import Parallax from "./Parallax";
 
 const benefits = [
   {
@@ -57,7 +58,7 @@ export default function ForRealtors() {
 
         {/* Right — package card / closing-gift mockup */}
         <Reveal delay={0.1}>
-          <div className="relative mx-auto max-w-md">
+          <Parallax offset={24} className="relative mx-auto max-w-md">
             <div className="absolute -right-4 -top-4 -z-10 h-full w-full border border-gold/40" />
             <div className="bg-navy p-10 text-center text-cream">
               <p className="font-inter text-xs uppercase tracking-[0.22em] text-gold">
@@ -85,7 +86,7 @@ export default function ForRealtors() {
                 Request This Package
               </a>
             </div>
-          </div>
+          </Parallax>
         </Reveal>
       </div>
     </section>
