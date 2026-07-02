@@ -3,9 +3,20 @@
 A premium, single-page marketing site for **Homes by Fattori** — bespoke,
 hand-drawn architectural portraits of luxury homes by architect Telma Fattori.
 
-Built with **Next.js 14 (App Router)**, **Tailwind CSS**, **Framer Motion**,
-**React Hook Form**, and **Resend** for the contact form. Deploy-ready for
-Vercel.
+Built with **Next.js 15 (App Router)**, **React 19**, **Tailwind CSS**,
+**Framer Motion**, **React Hook Form**, and **Resend** for the contact form.
+Deploy-ready for Vercel.
+
+Highlights:
+
+- **Zero external requests** — all placeholder artwork is local inline SVG.
+- **SEO** — JSON-LD structured data (Organization, Product offers, FAQ),
+  build-time generated Open Graph image, sitemap, robots, canonical URL.
+- **Accessibility** — skip link, visible focus rings, `prefers-reduced-motion`
+  honored everywhere, keyboard-accessible portfolio overlays, ARIA-annotated
+  form errors, Escape closes the mobile menu.
+- **Security** — hardened HTTP headers (HSTS, X-Frame-Options, nosniff…),
+  contact API with honeypot, field length limits, and per-IP rate limiting.
 
 ---
 
@@ -82,26 +93,28 @@ The route handler lives at [`app/api/contact/route.ts`](app/api/contact/route.ts
 
 ## 4. Replacing placeholders with real images
 
-All placeholders use [placehold.co](https://placehold.co) or inline SVG so the
+All placeholder artwork is local inline SVG (no external requests), so the
 site looks finished out of the box. To use real artwork:
 
 1. Add your files to [`public/images/`](public/images) (e.g. `artist.jpg`,
-   `portfolio-01.jpg` … `portfolio-08.jpg`, `og.jpg`).
-2. **Artist photo** — in [`components/About.tsx`](components/About.tsx), change
-   the `<Image src="https://placehold.co/...">` to `src="/images/artist.jpg"`.
+   `portfolio-01.jpg` … `portfolio-08.jpg`).
+2. **Artist photo** — in [`components/About.tsx`](components/About.tsx),
+   replace `<ArtistPlaceholder />` with a `next/image` pointing at
+   `/images/artist.jpg`.
 3. **Portfolio** — in [`components/Portfolio.tsx`](components/Portfolio.tsx),
    add an `image` field to each entry in the `works` array (e.g.
-   `image: "/images/portfolio-01.jpg"`) and use it as the `src`.
+   `image: "/images/portfolio-01.jpg"`) — real scans automatically replace
+   the SVG sketches.
 4. **Hero** — the hero uses an inline SVG
    ([`components/HouseIllustration.tsx`](components/HouseIllustration.tsx)). To
    use a real portrait instead, replace `<HouseIllustration />` in
    [`components/Hero.tsx`](components/Hero.tsx) with a `next/image`.
-5. **Social share (OG)** — in [`app/layout.tsx`](app/layout.tsx), point the
-   `openGraph.images` / `twitter.images` URLs at `/images/og.jpg`.
+5. **Social share (OG)** — the OG image is generated at build time from
+   [`app/opengraph-image.tsx`](app/opengraph-image.tsx); edit it there, or
+   delete that file and point `openGraph.images` in
+   [`app/layout.tsx`](app/layout.tsx) at `/images/og.jpg`.
 
-> `next/image` is already configured to allow `placehold.co` in
-> [`next.config.mjs`](next.config.mjs). Local files under `public/` need no
-> extra config.
+> Local files under `public/` need no extra config.
 
 ---
 
@@ -118,18 +131,23 @@ it blank to disable.
 ```
 homes-by-fattori/
 ├── app/
-│   ├── layout.tsx            # fonts, metadata, OG tags, GA
+│   ├── layout.tsx            # fonts, metadata, JSON-LD, GA, skip link
 │   ├── page.tsx              # assembles all sections
 │   ├── globals.css           # Tailwind + brand component classes
+│   ├── opengraph-image.tsx   # build-time generated OG/social image
+│   ├── icon.svg              # favicon
+│   ├── manifest.ts           # /manifest.webmanifest
+│   ├── not-found.tsx         # branded 404
 │   ├── sitemap.ts            # /sitemap.xml
 │   ├── robots.ts             # /robots.txt
-│   └── api/contact/route.ts  # Resend form handler
+│   └── api/contact/route.ts  # Resend form handler (honeypot + rate limit)
 ├── components/
 │   ├── Navbar.tsx            HouseIllustration.tsx  Reveal.tsx
 │   ├── Hero.tsx              TrustBar.tsx           About.tsx
-│   ├── Portfolio.tsx         HowItWorks.tsx         Pricing.tsx
-│   ├── Testimonials.tsx      ForRealtors.tsx        OrderForm.tsx
-│   └── Footer.tsx
+│   ├── Portfolio.tsx         PortraitSketch.tsx     HowItWorks.tsx
+│   ├── Pricing.tsx           Testimonials.tsx       ForRealtors.tsx
+│   ├── Faq.tsx               OrderForm.tsx          Footer.tsx
+│   └── MotionProvider.tsx
 ├── public/images/
 ├── tailwind.config.ts  next.config.mjs  postcss.config.mjs
 ├── .env.local.example

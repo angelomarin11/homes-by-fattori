@@ -14,6 +14,53 @@ type ContactPayload = {
   source?: string;
   notes?: string;
   agree?: boolean;
+  /** Honeypot — humans never see or fill this field. */
+  company?: string;
+};
+
+// --- basic in-memory rate limiting -----------------------------------------
+// Good enough for a single long-lived server; on serverless each instance
+// keeps its own window, which still blunts bursts from one client.
+const RATE_LIMIT_MAX = 5;
+const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+
+const hits = new Map<string, number[]>();
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const windowStart = now - RATE_LIMIT_WINDOW_MS;
+  const recent = (hits.get(ip) ?? []).filter((t) => t > windowStart);
+
+  if (recent.length >= RATE_LIMIT_MAX) {
+    hits.set(ip, recent);
+    return true;
+  }
+
+  recent.push(now);
+  hits.set(ip, recent);
+
+  // Opportunistic cleanup so the map can't grow unbounded.
+  if (hits.size > 10_000) {
+    for (const [key, times] of hits) {
+      if (times.every((t) => t <= windowStart)) hits.delete(key);
+    }
+  }
+
+  return false;
+}
+
+// ---------------------------------------------------------------------------
+
+const FIELD_LIMITS: Record<string, number> = {
+  fullName: 120,
+  email: 254,
+  phone: 40,
+  country: 80,
+  property: 1500,
+  format: 20,
+  framing: 30,
+  source: 60,
+  notes: 3000,
 };
 
 function escapeHtml(value: string): string {
@@ -29,7 +76,21 @@ function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
+function clean(value: unknown, limit: number): string {
+  return typeof value === "string" ? value.trim().slice(0, limit) : "";
+}
+
 export async function POST(request: Request) {
+  const ip =
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+
+  if (isRateLimited(ip)) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again later." },
+      { status: 429 }
+    );
+  }
+
   let data: ContactPayload;
 
   try {
@@ -41,12 +102,18 @@ export async function POST(request: Request) {
     );
   }
 
-  const fullName = (data.fullName ?? "").trim();
-  const email = (data.email ?? "").trim();
-  const country = (data.country ?? "").trim();
-  const property = (data.property ?? "").trim();
-  const format = (data.format ?? "").trim();
-  const framing = (data.framing ?? "").trim();
+  // Honeypot filled in → almost certainly a bot. Pretend success so the bot
+  // doesn't learn anything, and send nothing.
+  if (typeof data.company === "string" && data.company.trim() !== "") {
+    return NextResponse.json({ ok: true, emailed: false }, { status: 200 });
+  }
+
+  const fullName = clean(data.fullName, FIELD_LIMITS.fullName);
+  const email = clean(data.email, FIELD_LIMITS.email);
+  const country = clean(data.country, FIELD_LIMITS.country);
+  const property = clean(data.property, FIELD_LIMITS.property);
+  const format = clean(data.format, FIELD_LIMITS.format);
+  const framing = clean(data.framing, FIELD_LIMITS.framing);
 
   // Server-side validation mirroring the form's required fields.
   if (!fullName || !email || !country || !property || !format || !framing) {
@@ -90,9 +157,9 @@ export async function POST(request: Request) {
 
   const resend = new Resend(apiKey);
 
-  const phone = (data.phone ?? "").trim();
-  const source = (data.source ?? "").trim();
-  const notes = (data.notes ?? "").trim();
+  const phone = clean(data.phone, FIELD_LIMITS.phone);
+  const source = clean(data.source, FIELD_LIMITS.source);
+  const notes = clean(data.notes, FIELD_LIMITS.notes);
 
   const rows: Array<[string, string]> = [
     ["Name", fullName],
@@ -149,7 +216,7 @@ export async function POST(request: Request) {
     const internal = await resend.emails.send({
       from: fromEmail,
       to: toEmail,
-      reply_to: email,
+      replyTo: email,
       subject: `New commission enquiry — ${fullName} (${format})`,
       html: internalHtml,
     });

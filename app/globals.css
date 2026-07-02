@@ -14,12 +14,47 @@ html {
   scroll-padding-top: 88px;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
 body {
   background-color: var(--color-cream);
   color: #555555;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background-color: rgba(184, 150, 80, 0.3);
+  color: var(--color-navy);
+}
+
+/* Visible, on-brand focus ring for keyboard navigation */
+:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 3px;
+}
+
+.skip-link {
+  position: fixed;
+  top: -100%;
+  left: 1.5rem;
+  z-index: 100;
+  padding: 0.75rem 1.25rem;
+  background-color: var(--color-navy);
+  color: var(--color-cream);
+  font-size: 0.8125rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: top 0.2s ease;
+}
+
+.skip-link:focus-visible {
+  top: 1rem;
 }
 
 @layer components {
@@ -39,7 +74,8 @@ body {
     @apply inline-flex items-center justify-center bg-gold text-navy font-inter
       text-sm font-medium uppercase tracking-[0.15em] px-8 py-4
       transition-all duration-300 ease-luxe hover:bg-[#a8853f]
-      hover:-translate-y-[2px] hover:shadow-[0_8px_24px_-8px_rgba(184,150,80,0.5)];
+      hover:-translate-y-[2px] hover:shadow-[0_8px_24px_-8px_rgba(184,150,80,0.5)]
+      motion-reduce:transition-none motion-reduce:hover:translate-y-0;
   }
 
   .btn-outline {

@@ -15,6 +15,8 @@ type FormValues = {
   source: string;
   notes: string;
   agree: boolean;
+  /** Honeypot — hidden from humans; bots that fill it are silently dropped. */
+  company: string;
 };
 
 export default function OrderForm() {
@@ -114,6 +116,18 @@ export default function OrderForm() {
                 noValidate
                 className="grid grid-cols-1 gap-6 sm:grid-cols-2"
               >
+                {/* Honeypot — visually hidden, ignored by humans */}
+                <div className="hidden" aria-hidden="true">
+                  <label htmlFor="company">Company</label>
+                  <input
+                    id="company"
+                    type="text"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    {...register("company")}
+                  />
+                </div>
+
                 {/* Full name */}
                 <div>
                   <label className={labelClass} htmlFor="fullName">
@@ -121,6 +135,8 @@ export default function OrderForm() {
                   </label>
                   <input
                     id="fullName"
+                    autoComplete="name"
+                    aria-invalid={!!errors.fullName}
                     className={inputClass}
                     placeholder="Jane Doe"
                     {...register("fullName", {
@@ -128,7 +144,9 @@ export default function OrderForm() {
                     })}
                   />
                   {errors.fullName && (
-                    <p className={errorClass}>{errors.fullName.message}</p>
+                    <p role="alert" className={errorClass}>
+                      {errors.fullName.message}
+                    </p>
                   )}
                 </div>
 
@@ -140,6 +158,8 @@ export default function OrderForm() {
                   <input
                     id="email"
                     type="email"
+                    autoComplete="email"
+                    aria-invalid={!!errors.email}
                     className={inputClass}
                     placeholder="jane@email.com"
                     {...register("email", {
@@ -151,7 +171,9 @@ export default function OrderForm() {
                     })}
                   />
                   {errors.email && (
-                    <p className={errorClass}>{errors.email.message}</p>
+                    <p role="alert" className={errorClass}>
+                      {errors.email.message}
+                    </p>
                   )}
                 </div>
 
@@ -162,6 +184,8 @@ export default function OrderForm() {
                   </label>
                   <input
                     id="phone"
+                    type="tel"
+                    autoComplete="tel"
                     className={inputClass}
                     placeholder="+1 555 000 0000"
                     {...register("phone")}
@@ -175,6 +199,8 @@ export default function OrderForm() {
                   </label>
                   <select
                     id="country"
+                    autoComplete="country-name"
+                    aria-invalid={!!errors.country}
                     className={inputClass}
                     {...register("country", {
                       required: "Please select your country.",
@@ -187,7 +213,9 @@ export default function OrderForm() {
                     <option>Other</option>
                   </select>
                   {errors.country && (
-                    <p className={errorClass}>{errors.country.message}</p>
+                    <p role="alert" className={errorClass}>
+                      {errors.country.message}
+                    </p>
                   )}
                 </div>
 
@@ -199,6 +227,7 @@ export default function OrderForm() {
                   <textarea
                     id="property"
                     rows={2}
+                    aria-invalid={!!errors.property}
                     className={inputClass}
                     placeholder="e.g. Colonial manor, Greenwich CT — two storeys, brick facade"
                     {...register("property", {
@@ -206,7 +235,9 @@ export default function OrderForm() {
                     })}
                   />
                   {errors.property && (
-                    <p className={errorClass}>{errors.property.message}</p>
+                    <p role="alert" className={errorClass}>
+                      {errors.property.message}
+                    </p>
                   )}
                 </div>
 
@@ -232,7 +263,9 @@ export default function OrderForm() {
                     ))}
                   </div>
                   {errors.format && (
-                    <p className={errorClass}>{errors.format.message}</p>
+                    <p role="alert" className={errorClass}>
+                      {errors.format.message}
+                    </p>
                   )}
                 </fieldset>
 
@@ -258,7 +291,9 @@ export default function OrderForm() {
                     ))}
                   </div>
                   {errors.framing && (
-                    <p className={errorClass}>{errors.framing.message}</p>
+                    <p role="alert" className={errorClass}>
+                      {errors.framing.message}
+                    </p>
                   )}
                 </fieldset>
 
@@ -311,13 +346,18 @@ export default function OrderForm() {
                     </span>
                   </label>
                   {errors.agree && (
-                    <p className={errorClass}>{errors.agree.message}</p>
+                    <p role="alert" className={errorClass}>
+                      {errors.agree.message}
+                    </p>
                   )}
                 </div>
 
                 {serverError && (
                   <div className="sm:col-span-2">
-                    <p className="border border-red-300 bg-red-50 px-4 py-3 font-inter text-sm text-red-700">
+                    <p
+                      role="alert"
+                      className="border border-red-300 bg-red-50 px-4 py-3 font-inter text-sm text-red-700"
+                    >
                       {serverError}
                     </p>
                   </div>

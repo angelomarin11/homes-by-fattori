@@ -3,6 +3,7 @@ const navigation = [
   { label: "How It Works", href: "#process" },
   { label: "Pricing", href: "#pricing" },
   { label: "For Realtors", href: "#realtors" },
+  { label: "FAQ", href: "#faq" },
   { label: "Commission", href: "#order" },
 ];
 

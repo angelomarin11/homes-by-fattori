@@ -14,6 +14,7 @@ const links = [
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const [active, setActive] = useState("#home");
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -22,11 +23,39 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Lock body scroll when the mobile menu is open.
+  // Highlight the nav link for the section currently in view.
+  useEffect(() => {
+    const sections = links
+      .map((link) => document.querySelector<HTMLElement>(link.href))
+      .filter((el): el is HTMLElement => el !== null);
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            setActive(`#${entry.target.id}`);
+          }
+        }
+      },
+      { rootMargin: "-40% 0px -55% 0px" }
+    );
+
+    sections.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+
+  // Lock body scroll while the mobile menu is open; close on Escape.
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    if (open) window.addEventListener("keydown", onKeyDown);
+
     return () => {
       document.body.style.overflow = "";
+      window.removeEventListener("keydown", onKeyDown);
     };
   }, [open]);
 
@@ -38,7 +67,10 @@ export default function Navbar() {
           : "bg-transparent"
       }`}
     >
-      <nav className="container-luxe flex h-[72px] items-center justify-between">
+      <nav
+        aria-label="Main navigation"
+        className="container-luxe flex h-[72px] items-center justify-between"
+      >
         <a
           href="#home"
           className="font-playfair text-lg md:text-xl tracking-[0.18em] text-navy"
@@ -52,7 +84,10 @@ export default function Navbar() {
             <li key={link.href}>
               <a
                 href={link.href}
-                className="font-inter text-[13px] uppercase tracking-[0.12em] text-navy/80 transition-colors duration-300 hover:text-gold"
+                aria-current={active === link.href ? "true" : undefined}
+                className={`font-inter text-[13px] uppercase tracking-[0.12em] transition-colors duration-300 hover:text-gold ${
+                  active === link.href ? "text-gold" : "text-navy/80"
+                }`}
               >
                 {link.label}
               </a>
@@ -69,6 +104,7 @@ export default function Navbar() {
           type="button"
           aria-label={open ? "Close menu" : "Open menu"}
           aria-expanded={open}
+          aria-controls="mobile-menu"
           onClick={() => setOpen((v) => !v)}
           className="relative z-50 flex h-10 w-10 flex-col items-center justify-center gap-[5px] lg:hidden"
         >
@@ -92,6 +128,8 @@ export default function Navbar() {
 
       {/* Mobile menu panel */}
       <div
+        id="mobile-menu"
+        aria-hidden={!open}
         className={`fixed inset-0 z-40 flex flex-col bg-cream px-6 pt-28 transition-all duration-500 ease-luxe lg:hidden ${
           open
             ? "pointer-events-auto opacity-100"
@@ -104,6 +142,7 @@ export default function Navbar() {
               <a
                 href={link.href}
                 onClick={() => setOpen(false)}
+                tabIndex={open ? undefined : -1}
                 className="font-playfair text-3xl text-navy transition-colors hover:text-gold"
               >
                 {link.label}
@@ -114,6 +153,7 @@ export default function Navbar() {
         <a
           href="#order"
           onClick={() => setOpen(false)}
+          tabIndex={open ? undefined : -1}
           className="btn-gold mt-10 w-full"
         >
           Commission Your Portrait

@@ -1,15 +1,26 @@
 import Image from "next/image";
 import Reveal from "./Reveal";
+import PortraitSketch from "./PortraitSketch";
 
-const works = [
-  { title: "Bel Air Estate", location: "Los Angeles, CA", format: "A2 Format", h: 760 },
-  { title: "Beachfront Villa", location: "Miami, FL", format: "A3 Format", h: 600 },
-  { title: "Colonial Manor", location: "Greenwich, CT", format: "A2 Format", h: 680 },
-  { title: "Mountain Retreat", location: "Aspen, CO", format: "A3 Format", h: 600 },
-  { title: "High-Rise Penthouse", location: "São Paulo, BR", format: "A3 Format", h: 740 },
-  { title: "Vineyard Estate", location: "Tuscany, IT", format: "A2 Format", h: 600 },
-  { title: "Modern Villa", location: "Hamptons, NY", format: "A3 Format", h: 640 },
-  { title: "Country House", location: "The Cotswolds, UK", format: "A2 Format", h: 720 },
+type Work = {
+  title: string;
+  location: string;
+  format: string;
+  h: number;
+  variant: number;
+  /** Path to a real scan under /public (e.g. "/images/portfolio-01.jpg"). */
+  image?: string;
+};
+
+const works: Work[] = [
+  { title: "Bel Air Estate", location: "Los Angeles, CA", format: "A2 Format", h: 760, variant: 2 },
+  { title: "Beachfront Villa", location: "Miami, FL", format: "A3 Format", h: 600, variant: 1 },
+  { title: "Colonial Manor", location: "Greenwich, CT", format: "A2 Format", h: 680, variant: 2 },
+  { title: "Mountain Retreat", location: "Aspen, CO", format: "A3 Format", h: 600, variant: 3 },
+  { title: "High-Rise Penthouse", location: "São Paulo, BR", format: "A3 Format", h: 740, variant: 1 },
+  { title: "Vineyard Estate", location: "Tuscany, IT", format: "A2 Format", h: 600, variant: 0 },
+  { title: "Modern Villa", location: "Hamptons, NY", format: "A3 Format", h: 640, variant: 1 },
+  { title: "Country House", location: "The Cotswolds, UK", format: "A2 Format", h: 720, variant: 3 },
 ];
 
 export default function Portfolio() {
@@ -28,18 +39,28 @@ export default function Portfolio() {
         <div className="mt-16 columns-1 gap-6 sm:columns-2 lg:columns-3 [&>*]:mb-6">
           {works.map((work, i) => (
             <Reveal key={work.title} delay={(i % 3) * 0.08}>
-              <figure className="group relative block break-inside-avoid overflow-hidden">
-                <Image
-                  src={`https://placehold.co/600x${work.h}/E9E2D2/8A7A52?text=${encodeURIComponent(
-                    work.title
-                  )}`}
-                  alt={`${work.title}, ${work.location} — hand-drawn architectural portrait`}
-                  width={600}
-                  height={work.h}
-                  className="h-auto w-full object-cover transition-transform duration-700 ease-luxe group-hover:scale-[1.03]"
-                />
-                {/* Hover overlay */}
-                <figcaption className="absolute inset-0 flex flex-col items-center justify-center bg-navy/0 px-4 text-center opacity-0 transition-all duration-500 ease-luxe group-hover:bg-navy/70 group-hover:opacity-100">
+              <figure
+                tabIndex={0}
+                className="group relative block break-inside-avoid overflow-hidden"
+              >
+                {work.image ? (
+                  <Image
+                    src={work.image}
+                    alt={`${work.title}, ${work.location} — hand-drawn architectural portrait`}
+                    width={600}
+                    height={work.h}
+                    className="h-auto w-full object-cover transition-transform duration-700 ease-luxe group-hover:scale-[1.03] motion-reduce:transition-none"
+                  />
+                ) : (
+                  <PortraitSketch
+                    title={work.title}
+                    variant={work.variant}
+                    height={work.h}
+                    className="h-auto w-full transition-transform duration-700 ease-luxe group-hover:scale-[1.03] motion-reduce:transition-none"
+                  />
+                )}
+                {/* Overlay revealed on hover or keyboard focus */}
+                <figcaption className="absolute inset-0 flex flex-col items-center justify-center bg-navy/0 px-4 text-center opacity-0 transition-all duration-500 ease-luxe group-hover:bg-navy/70 group-hover:opacity-100 group-focus-within:bg-navy/70 group-focus-within:opacity-100 group-focus:bg-navy/70 group-focus:opacity-100 motion-reduce:transition-none">
                   <span className="font-playfair text-2xl text-cream">
                     {work.title}
                   </span>
