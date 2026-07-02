@@ -112,20 +112,83 @@ create index on transactions (status);
 create index on transactions (duel_id, status, paid_at);  -- mural de gritos pagos
 create index on duels (status);
 
--- ROW LEVEL SECURITY: leitura pública, escrita só pelo backend (service_role).
+-- ============================================================================
+--  FUNÇÕES (rodam no banco — atômicas, evitam corridas do backend REST)
+-- ============================================================================
+
+-- RANKING: soma blocos do contribuinte. Estava só no README antes — precisa
+-- existir no banco senão o webhook chama e falha silenciosamente.
+create or replace function bump_contribution(p_duel text, p_name text, p_n int)
+returns void language sql as $$
+  insert into contributions (duel_id, buyer_name, blocks)
+  values (p_duel, p_name, p_n)
+  on conflict (duel_id, buyer_name)
+  do update set blocks = contributions.blocks + excluded.blocks;
+$$;
+
+-- ETERNO ATÔMICO: crava o bloco `p_pos` como eterno SÓ se ainda houver vaga
+-- (count < cap) e o bloco não for eterno. A checagem de cap e o insert
+-- acontecem na MESMA instrução → dois pagamentos simultâneos não furam o teto.
+-- Retorna a posição cravada, ou NULL se estava esgotado (operador reembolsa).
+create or replace function claim_eternal(
+  p_duel text, p_pos int, p_side char, p_name text, p_flair text, p_txn uuid, p_cap int
+) returns int language plpgsql as $$
+declare placed int;
+begin
+  insert into blocks (duel_id, pos, side, owner_name, flair, price, eternal, txn_id)
+  select p_duel, p_pos, p_side, p_name, p_flair, 999999, true, p_txn
+  where (select count(*) from blocks where duel_id = p_duel and eternal) < p_cap
+  on conflict (duel_id, pos)
+    do update set side = excluded.side, owner_name = excluded.owner_name,
+                  flair = excluded.flair, price = excluded.price,
+                  eternal = true, txn_id = excluded.txn_id
+    where blocks.eternal = false            -- nunca sobrescreve um Eterno já cravado
+  returning pos into placed;
+  return placed;                            -- NULL = sem vaga (nada inserido)
+end; $$;
+
+-- EQUIPE ATÔMICA: soma pontos sem ler-e-escrever no backend.
+create or replace function bump_crew(p_duel text, p_tag text, p_side char, p_n int)
+returns void language sql as $$
+  insert into crews (duel_id, tag, side, points)
+  values (p_duel, p_tag, p_side, p_n)
+  on conflict (duel_id, tag)
+  do update set points = crews.points + excluded.points;
+$$;
+
+-- ============================================================================
+--  ROW LEVEL SECURITY: leitura pública, escrita só pelo backend (service_role)
+-- ============================================================================
 alter table duels enable row level security;
 alter table blocks enable row level security;
 alter table contributions enable row level security;
 alter table crews enable row level security;
+alter table transactions enable row level security;   -- ANTES ficava aberta!
 create policy "public read duels" on duels for select using (true);
 create policy "public read blocks" on blocks for select using (true);
 create policy "public read ranking" on contributions for select using (true);
 create policy "public read crews" on crews for select using (true);
 -- (sem policy de INSERT/UPDATE = ninguém escreve direto; só o service_role do backend)
 
--- MURAL: o frontend lê os gritos das últimas transações PAGAS (cry not null).
--- Nada de mensagens grátis anônimas no mural público — grito só entra pago,
--- o que financia a disputa e desestimula spam. Moderação: apagar cry na txn.
+-- transactions NÃO tem policy de select: com RLS ligada e sem policy, o anon
+-- não lê NADA da tabela — protege PII (nome, valor, ledger 70/30, gateway_id)
+-- e impede forjar status='paid'. O frontend usa duas VIEWS abaixo, que expõem
+-- só o necessário, e o polling de pagamento passa a chamar /api/txn-status.
+
+-- MURAL público: colunas seguras das transações PAGAS. `gross` é o gasto do
+-- comprador (público por design — é o valor do "grito"/super-chat). O ledger
+-- (creator_cut, platform_cut, gateway_id, ref) NUNCA sai daqui.
+create view public_feed
+with (security_invoker = false) as
+  select duel_id, buyer_name, side, cry, crew, kind, gross,
+         coalesce(array_length(positions, 1), 0) as block_count, paid_at
+  from transactions
+  where status = 'paid'
+  order by paid_at desc;
+grant select on public_feed to anon, authenticated;
+
+-- MURAL: grito só entra PAGO (financia a disputa e desestimula spam).
+-- Moderação: apagar `cry` na transação remove do mural na hora.
 
 -- NOTA: nenhuma tabela de "recompensa por recrutamento". 'ref' é só atribuição.
 -- Pagar por indicação em vez de pelo bloco caracteriza pirâmide. Não fazer.

@@ -16,11 +16,11 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 
 import {
   GRID, BASE, WIN_PCT, HOLD_HOURS, ETERNAL_PRICE, ETERNAL_CAP, SPLIT,
-  CRY_MAX, CRY_TIER2_MIN, CRY_TIER3_MIN, cryTier, COMBO_WINDOW_MS,
+  CRY_MAX, cryTier, COMBO_WINDOW_MS,
   FLAIRS, normalizeCrewTag, nextGoal, skinOf, SKINS,
 } from "./duality/rules";
 import { DICT, MONEY, LangCtx, useT, detectLang, bold } from "./duality/i18n";
-import { S, CSS, FONTS, FD, FC, FM, BG, INK, DIM, CARD, LINE, pickText, fmtHMS } from "./duality/theme";
+import { S, CSS, FONTS, FD, FM, BG, INK, DIM, pickText, fmtHMS } from "./duality/theme";
 import Board from "./duality/Board";
 import Tv from "./duality/Tv";
 

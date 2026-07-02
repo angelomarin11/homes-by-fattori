@@ -2,7 +2,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
-  cryTier, CRY_TIER2_MIN, CRY_TIER3_MIN,
+  cryTier, feedTier, CRY_TIER2_MIN, CRY_TIER3_MIN, curSymbol,
   normalizeCrewTag, nextGoal, MILESTONES, skinOf, GRID, WIN_PCT,
 } from "../components/duality/rules.js";
 import { computeSplit, gatewayFor, SPLIT } from "../lib/payments.js";
@@ -14,6 +14,22 @@ test("cryTier: palco cresce com o gasto", () => {
   assert.equal(cryTier(CRY_TIER3_MIN - 0.01), 2);
   assert.equal(cryTier(CRY_TIER3_MIN), 3);
   assert.equal(cryTier(500), 3);
+});
+
+test("feedTier: Eterno é sempre tier 3, resto segue cryTier", () => {
+  assert.equal(feedTier(100, "eternal"), 3);
+  assert.equal(feedTier(0, "eternal"), 3);
+  assert.equal(feedTier(CRY_TIER3_MIN, "blocks"), 3);
+  assert.equal(feedTier(CRY_TIER2_MIN, "blocks"), 2);
+  assert.equal(feedTier(1, "blocks"), 1);
+  assert.equal(feedTier("52", "blocks"), 3); // aceita string do banco
+});
+
+test("curSymbol: código conhecido → símbolo; desconhecido → fallback", () => {
+  assert.equal(curSymbol("BRL"), "R$ ");
+  assert.equal(curSymbol("USD"), "$");
+  assert.equal(curSymbol("EUR"), "€");
+  assert.equal(curSymbol("GBP"), "GBP ");
 });
 
 test("normalizeCrewTag: maiúsculas, sem símbolos, máx 5", () => {

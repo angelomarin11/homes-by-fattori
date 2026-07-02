@@ -15,6 +15,17 @@ export async function POST(req) {
   try {
     const { duelId, side, budget, kind = "blocks", buyerName, ref, cry, crew, flair } = await req.json();
     if (!["a", "b"].includes(side)) return bad("side inválido");
+    if (!["blocks", "eternal"].includes(kind)) return bad("kind inválido");
+
+    // orçamento: número finito e positivo, com teto (NaN/negativo/gigante furam o
+    // limite de gasto — sem isso um NaN faz `spent > NaN` ser sempre falso e cobra
+    // o mapa inteiro). Só importa pra compra de blocos; Eterno tem preço fixo.
+    let budgetNum = 0;
+    if (kind === "blocks") {
+      budgetNum = Number(budget);
+      if (!Number.isFinite(budgetNum) || budgetNum < 1) return bad("orçamento inválido");
+      budgetNum = Math.min(budgetNum, 100000);
+    }
 
     // extras sociais — sanitizados no servidor (o frontend nunca é fonte de verdade)
     const cleanCry = typeof cry === "string" ? cry.trim().slice(0, 80) || null : null;
@@ -61,7 +72,7 @@ export async function POST(req) {
       }
       cand.sort((x, y) => x.cost - y.cost);
       let spent = 0;
-      for (const c of cand) { if (spent + c.cost > Number(budget) + 1e-9) continue; spent += c.cost; positions.push(c.pos); }
+      for (const c of cand) { if (spent + c.cost > budgetNum + 1e-9) continue; spent += c.cost; positions.push(c.pos); }
       if (positions.length === 0) return bad("orçamento insuficiente pra tomar algum bloco", 422);
       gross = +spent.toFixed(2);
     }
@@ -84,12 +95,16 @@ export async function POST(req) {
         txnId: txn.id, creatorRecipient: duel.creators.pagarme_recipient_id, positions,
       });
     } else {
-      // volta pro link público da disputa depois do checkout hospedado
-      const origin = req.headers.get("origin") || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+      // volta pro link público da disputa depois do checkout hospedado.
+      // NUNCA confia no header Origin cru (open-redirect/phishing): usa o site
+      // oficial e só aceita o Origin se ele bater com ele.
+      const site = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/$/, "");
+      const origin = req.headers.get("origin");
+      const base = origin === site ? origin : site;
       pay = await createStripeCheckout({
         gross, currency: duel.currency, description: `${duel.title} · ${side === "a" ? duel.side_a : duel.side_b}`,
         txnId: txn.id, creatorAccount: duel.creators.stripe_account_id,
-        returnUrl: `${origin}/d/${duelId}`,
+        returnUrl: `${base}/d/${duelId}`,
       });
     }
     await db.from("transactions").update({ gateway_id: pay.gatewayId }).eq("id", txn.id);

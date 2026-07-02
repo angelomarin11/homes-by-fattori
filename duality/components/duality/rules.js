@@ -19,6 +19,12 @@ export const CRY_MAX = 80;
 export const CRY_TIER2_MIN = 15;
 export const CRY_TIER3_MIN = 50;
 export const cryTier = (spent) => (spent >= CRY_TIER3_MIN ? 3 : spent >= CRY_TIER2_MIN ? 2 : 1);
+// tier de uma jogada já registrada: Eterno sempre toma a tela (tier 3)
+export const feedTier = (gross, kind) => (kind === "eternal" ? 3 : cryTier(Number(gross)));
+
+// símbolo da moeda por código ISO da disputa (fonte única — evita mapas soltos)
+export const CURRENCY_SYMBOL = { BRL: "R$ ", USD: "$", EUR: "€" };
+export const curSymbol = (code) => CURRENCY_SYMBOL[code] || `${code} `;
 
 // COMBO — jogadas seguidas dentro da janela mantêm o fogo aceso (só status)
 export const COMBO_WINDOW_MS = 90_000;

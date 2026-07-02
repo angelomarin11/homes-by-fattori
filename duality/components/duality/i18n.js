@@ -3,7 +3,7 @@
 //  gritos de guerra, equipes, modo transmissão, emblemas, estúdio do criador).
 // ============================================================================
 import { createContext, useContext } from "react";
-import { GRID, BASE, WIN_PCT, HOLD_HOURS, ETERNAL_PRICE, ETERNAL_CAP, SPLIT } from "./rules";
+import { GRID, BASE, WIN_PCT, HOLD_HOURS, ETERNAL_PRICE, ETERNAL_CAP, SPLIT, CRY_TIER2_MIN, CRY_TIER3_MIN } from "./rules";
 
 export const DICT = {
   pt: {
@@ -59,7 +59,7 @@ export const DICT = {
     crew_hint: "equipes ganham status, não dinheiro — o ranking mostra quem carrega o lado",
     crew_leave: "sair",
     cry_label: "GRITO DE GUERRA", cry_ph: "solte um grito com sua jogada (opcional)",
-    cry_tier2: "gasto de 15+ destaca seu grito na arena", cry_tier3: "gasto de 50+ toma a tela inteira",
+    cry_tier2: `gasto de ${CRY_TIER2_MIN}+ destaca seu grito na arena`, cry_tier3: `gasto de ${CRY_TIER3_MIN}+ toma a tela inteira`,
     hype_title: "MOVEU O MERCADO", hype_eternal: "CRAVOU UM ETERNO",
     flair_label: "SEU EMBLEMA", flair_hint: "marca os blocos que você toma",
     tv_btn: "TV", tv_live: "AO VIVO", tv_exit: "sair do modo TV",
@@ -72,7 +72,7 @@ export const DICT = {
     earn_title: "SIMULADOR DE GANHOS", earn_people: "apoiadores", earn_avg: "gasto médio",
     earn_you: "você recebe", earn_platform: "plataforma",
     earn_note: "estimativa ilustrativa — o split real é feito pelo gateway de pagamento",
-    not_found: "disputa não encontrada",
+    by: "por", not_found: "disputa não encontrada",
     net_err: "falha de rede — tente de novo",
     pix_copy: "Pix copia-e-cola",
     card_btn: "Pagar com cartão →",
@@ -131,7 +131,7 @@ export const DICT = {
     crew_hint: "crews earn status, not money — the ranking shows who carries the side",
     crew_leave: "leave",
     cry_label: "BATTLE CRY", cry_ph: "shout something with your move (optional)",
-    cry_tier2: "spend 15+ to highlight your cry in the arena", cry_tier3: "spend 50+ to take over the screen",
+    cry_tier2: `spend ${CRY_TIER2_MIN}+ to highlight your cry in the arena`, cry_tier3: `spend ${CRY_TIER3_MIN}+ to take over the screen`,
     hype_title: "MOVED THE MARKET", hype_eternal: "CLAIMED AN ETERNAL",
     flair_label: "YOUR EMBLEM", flair_hint: "marks the blocks you take",
     tv_btn: "TV", tv_live: "LIVE", tv_exit: "exit TV mode",
@@ -144,7 +144,7 @@ export const DICT = {
     earn_title: "EARNINGS SIMULATOR", earn_people: "supporters", earn_avg: "avg spend",
     earn_you: "you receive", earn_platform: "platform",
     earn_note: "illustrative estimate — the real split is done by the payment gateway",
-    not_found: "battle not found",
+    by: "by", not_found: "battle not found",
     net_err: "network error — try again",
     pix_copy: "Copy Pix code",
     card_btn: "Pay by card →",
@@ -203,7 +203,7 @@ export const DICT = {
     crew_hint: "los equipos ganan estatus, no dinero — el ranking muestra quién carga el lado",
     crew_leave: "salir",
     cry_label: "GRITO DE GUERRA", cry_ph: "grita algo con tu jugada (opcional)",
-    cry_tier2: "gasta 15+ y tu grito se destaca en la arena", cry_tier3: "gasta 50+ y tomas toda la pantalla",
+    cry_tier2: `gasta ${CRY_TIER2_MIN}+ y tu grito se destaca en la arena`, cry_tier3: `gasta ${CRY_TIER3_MIN}+ y tomas toda la pantalla`,
     hype_title: "MOVIÓ EL MERCADO", hype_eternal: "FIJÓ UN ETERNO",
     flair_label: "TU EMBLEMA", flair_hint: "marca los bloques que tomas",
     tv_btn: "TV", tv_live: "EN VIVO", tv_exit: "salir del modo TV",
@@ -216,7 +216,7 @@ export const DICT = {
     earn_title: "SIMULADOR DE GANANCIAS", earn_people: "seguidores", earn_avg: "gasto medio",
     earn_you: "tú recibes", earn_platform: "plataforma",
     earn_note: "estimación ilustrativa — el split real lo hace la pasarela de pago",
-    not_found: "disputa no encontrada",
+    by: "por", not_found: "disputa no encontrada",
     net_err: "fallo de red — inténtalo de nuevo",
     pix_copy: "Copiar código Pix",
     card_btn: "Pagar con tarjeta →",

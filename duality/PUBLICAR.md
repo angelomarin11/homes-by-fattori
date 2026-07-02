@@ -25,19 +25,11 @@ Pra publicar com deploy, domínio e histórico próprios:
 
 ### Supabase
 1. Crie o projeto em [supabase.com](https://supabase.com) (plano free).
-2. SQL Editor → cole e rode o `db/schema.sql` inteiro.
-3. Crie a função de ranking (SQL Editor):
-   ```sql
-   create or replace function bump_contribution(p_duel text, p_name text, p_n int)
-   returns void language sql as $$
-     insert into contributions (duel_id, buyer_name, blocks)
-     values (p_duel, p_name, p_n)
-     on conflict (duel_id, buyer_name)
-     do update set blocks = contributions.blocks + p_n;
-   $$;
-   ```
-4. Database → Replication → ative **Realtime** na tabela `blocks`.
-5. Anote: `Project URL`, `anon key`, `service_role key` (Settings → API).
+2. SQL Editor → cole e rode o `db/schema.sql` inteiro. **Ele já cria as funções**
+   `bump_contribution`, `claim_eternal`, `bump_crew`, a RLS de todas as tabelas
+   (inclusive `transactions`) e a view `public_feed` — não precisa rodar nada à parte.
+3. Database → Replication → ative **Realtime** na tabela `blocks`.
+4. Anote: `Project URL`, `anon key`, `service_role key` (Settings → API).
 
 ### Vercel
 1. Importe o repositório em [vercel.com](https://vercel.com).
@@ -45,7 +37,8 @@ Pra publicar com deploy, domínio e histórico próprios:
    - `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`
    - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `CRON_SECRET` (string aleatória longa)
-   - `NEXT_PUBLIC_SITE_URL` (a URL do deploy)
+   - `NEXT_PUBLIC_SITE_URL` (a URL do deploy — trava o retorno do checkout Stripe)
+   - `DUELS_ADMIN_SECRET` (string aleatória — sem ela `/api/duels` recusa tudo)
 3. Deploy. O `vercel.json` já agenda o cron de vitória (1/min).
    *Atenção:* cron de 1/min exige plano **Pro** (~US$20/mês); no Hobby o mínimo é
    1/dia — pra fase de sandbox tá ok, a vitória só conclui com atraso.
@@ -69,16 +62,16 @@ Pra publicar com deploy, domínio e histórico próprios:
 insert into creators (name, email, country, pagarme_recipient_id, approved)
 values ('Criador Teste', 'voce@exemplo.com', 'BR', 're_XXXX', true);
 ```
-Depois crie a disputa via API (o endpoint semeia os 576 blocos):
+Depois crie a disputa via API (semeia os 576 blocos). O header
+`x-admin-secret` precisa bater com `DUELS_ADMIN_SECRET`:
 ```bash
-curl -X POST https://SEU-DEPLOY/api/duels -H 'Content-Type: application/json' -d '{
+curl -X POST https://SEU-DEPLOY/api/duels \
+  -H 'Content-Type: application/json' -H "x-admin-secret: $DUELS_ADMIN_SECRET" -d '{
   "creatorId": "<uuid do creator>", "title": "Jesus vs Diabo",
   "sideA": "Jesus", "sideB": "Diabo", "colorA": "#F5C84B", "colorB": "#E03A2F",
   "skin": "carvao", "cries": ["Pela Luz!", "Hoje tem virada"], "victoryMsg": "A fé moveu o mapa."
 }'
 ```
-⚠️ `/api/duels` ainda não tem autenticação — antes de divulgar o domínio,
-proteja com um header secreto (ver Pendências).
 
 ### O teste de verdade
 1. Abra `/d/<id>` no celular.
@@ -94,12 +87,17 @@ proteja com um header secreto (ver Pendências).
 ## Fase 3 · Endurecer antes de abrir ao público (1–2 semanas, em paralelo)
 
 Código (pendências conhecidas — ver CLAUDE.md):
-- [ ] Autenticação no `/api/duels` (hoje qualquer um com um creatorId aprovado publica).
+- [x] Autenticação no `/api/duels` (header `x-admin-secret`).
+- [x] RLS na tabela `transactions` + view `public_feed` + rota `/api/txn-status`.
+- [x] Idempotência atômica do webhook + cap do Eterno atômico (`claim_eternal`).
+- [x] Validação de `budget` (NaN/negativo/teto) e allowlist do retorno Stripe.
 - [ ] Painel de moderação: apagar `transactions.cry`, renomear `owner_name`, pausar disputa.
       Grito é conteúdo público pago — filtro de palavras + remoção são obrigatórios.
 - [ ] QR real no modo TV (gerar QR do link `/d/[id]`; hoje é visual).
 - [ ] Rate limiting no `/api/charge` (evitar flood de transações pending).
 - [ ] Decidir promo de primeira jogada no servidor (hoje só existe na demo).
+- [ ] Reembolso automático quando `claim_eternal` retorna null (Eterno esgotou na
+      corrida): hoje o operador reembolsa manual pela dashboard do gateway.
 
 Não-código (obrigatório pra receber dinheiro de verdade):
 - [ ] CNPJ + conta PJ.
