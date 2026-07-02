@@ -39,8 +39,9 @@ export const MOCK_RANKING = [
 export const MOCK_CREWS = [
   { tag: "FIEL", side: "a", points: 61 }, { tag: "CAOS", side: "b", points: 44 },
 ];
+// mesma forma da view public_feed (block_count, sem positions/ledger)
 export const MOCK_FEED = [
-  { buyer_name: "Maria", side: "a", cry: "Pela Luz!", crew: "FIEL", gross: 52, kind: "blocks", positions: Array(11), paid_at: "2026-01-01T12:03:00Z" },
-  { buyer_name: "Dante", side: "b", cry: "Hoje o mapa escurece", crew: "CAOS", gross: 18, kind: "blocks", positions: Array(6), paid_at: "2026-01-01T12:01:00Z" },
-  { buyer_name: "Lúcia", side: "a", cry: null, crew: null, gross: 100, kind: "eternal", positions: [], paid_at: "2026-01-01T11:58:00Z" },
+  { buyer_name: "Maria", side: "a", cry: "Pela Luz!", crew: "FIEL", gross: 52, kind: "blocks", block_count: 11, paid_at: "2026-01-01T12:03:00Z" },
+  { buyer_name: "Dante", side: "b", cry: "Hoje o mapa escurece", crew: "CAOS", gross: 18, kind: "blocks", block_count: 6, paid_at: "2026-01-01T12:01:00Z" },
+  { buyer_name: "Lúcia", side: "a", cry: null, crew: null, gross: 100, kind: "eternal", block_count: 0, paid_at: "2026-01-01T11:58:00Z" },
 ];

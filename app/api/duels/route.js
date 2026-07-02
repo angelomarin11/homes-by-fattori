@@ -11,6 +11,13 @@ export const dynamic = "force-dynamic";
 export async function POST(req) {
   const db = getDb();
   try {
+    // AUTORIZAÇÃO: publicar disputa é ação de operador (curadoria fechada).
+    // Sem isto, qualquer um com o UUID de um criador aprovado publicaria splits
+    // pra ele. Exige o segredo do painel — `approved` é gate de curadoria, não auth.
+    const secret = process.env.DUELS_ADMIN_SECRET;
+    if (!secret || req.headers.get("x-admin-secret") !== secret) {
+      return Response.json({ error: "não autorizado" }, { status: 401 });
+    }
     const { creatorId, title, sideA, sideB, colorA, colorB, imgA, imgB, currency = "BRL", basePrice = 2, skin, cries, victoryMsg } = await req.json();
 
     // só criadores aprovados publicam (curadoria fechada)

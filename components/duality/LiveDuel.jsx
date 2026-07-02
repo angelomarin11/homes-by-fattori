@@ -10,7 +10,8 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from "react"
 
 import {
   GRID, BASE, WIN_PCT, ETERNAL_PRICE, FLAIRS, CRY_MAX,
-  normalizeCrewTag, nextGoal, skinOf,
+  CRY_TIER2_MIN, CRY_TIER3_MIN, feedTier,
+  normalizeCrewTag, nextGoal, skinOf, curSymbol,
 } from "./rules";
 import { DICT, MONEY, LangCtx, useT, detectLang, bold } from "./i18n";
 import { S, CSS, FONTS, FD, FM, BG, INK, DIM, LINE, pickText, fmtHMS } from "./theme";
@@ -18,8 +19,6 @@ import Board from "./Board";
 import Tv from "./Tv";
 import { getBrowserDb } from "@/lib/supabase-browser";
 import { MOCK_DUEL, mockBlocks, MOCK_RANKING, MOCK_CREWS, MOCK_FEED } from "./mock";
-
-const CUR = { BRL: "R$ ", USD: "$", EUR: "€" };
 
 export default function LiveDuel({ duelId, demo = false }) {
   const [lang, setLang] = useState("pt");
@@ -73,30 +72,40 @@ function LiveInner({ duelId, demo }) {
   }, []);
 
   /* ---------- carga + realtime ---------- */
+  // lê ranking, equipes e o mural (view public_feed — só colunas seguras; a
+  // tabela transactions tem RLS e não é lida pelo anon).
   const refreshSocial = useCallback(async () => {
     if (!db) return;
     const [r, c, f] = await Promise.all([
       db.from("contributions").select("buyer_name, blocks").eq("duel_id", duelId).order("blocks", { ascending: false }).limit(5),
       db.from("crews").select("tag, side, points").eq("duel_id", duelId).order("points", { ascending: false }).limit(5),
-      db.from("transactions").select("buyer_name, side, cry, crew, gross, kind, positions, paid_at").eq("duel_id", duelId).eq("status", "paid").order("paid_at", { ascending: false }).limit(8),
+      db.from("public_feed").select("buyer_name, side, cry, crew, gross, kind, block_count, paid_at").eq("duel_id", duelId).limit(8),
     ]);
     setRanking(r.data || []); setCrews(c.data || []);
     const feedRows = f.data || [];
     setFeed(feedRows);
-    // jogada nova tier 3 → hype na tela (dado real, vindo de pagamento confirmado)
+    // jogada nova tier 3 (gasto ≥ CRY_TIER3_MIN ou Eterno) → hype na tela
     const newest = feedRows[0];
-    if (newest && lastFeedTs.current && newest.paid_at !== lastFeedTs.current && Number(newest.gross) >= 50) {
+    if (newest && lastFeedTs.current && newest.paid_at !== lastFeedTs.current && (newest.kind === "eternal" || Number(newest.gross) >= CRY_TIER3_MIN)) {
       setHype({ name: newest.buyer_name, crew: newest.crew, cry: newest.cry, amount: newest.gross, side: newest.side, eternal: newest.kind === "eternal" });
       setTimeout(() => setHype(null), 3400);
     }
     if (newest) lastFeedTs.current = newest.paid_at;
   }, [db, duelId]);
+  // coalesce de eventos Realtime em rajada: N blocos de uma compra viram 1 refresh
+  const refreshTimer = useRef(null);
+  const scheduleRefresh = useCallback(() => {
+    if (refreshTimer.current) return;
+    refreshTimer.current = setTimeout(() => { refreshTimer.current = null; refreshSocial(); refreshDuelRef.current?.(); }, 400);
+  }, [refreshSocial]);
+  const refreshDuelRef = useRef(null);
 
   const refreshDuel = useCallback(async () => {
     if (!db) return;
     const { data } = await db.from("duels").select("*, creators(name)").eq("id", duelId).single();
     if (data) setDuel(data);
   }, [db, duelId]);
+  useEffect(() => { refreshDuelRef.current = refreshDuel; }, [refreshDuel]);
 
   useEffect(() => {
     let channel;
@@ -117,14 +126,20 @@ function LiveInner({ duelId, demo }) {
       // Realtime: cada bloco pago por QUALQUER pessoa aparece aqui
       channel = db.channel(`blocks:${duelId}`)
         .on("postgres_changes", { event: "*", schema: "public", table: "blocks", filter: `duel_id=eq.${duelId}` }, (payload) => {
+          // DELETE não traz `new` — ignora a linha, mas ainda reprocessa o social
           const b = payload.new;
-          setBlockRows(prev => { const i = prev.findIndex(x => x.pos === b.pos); if (i < 0) return [...prev, b]; const next = [...prev]; next[i] = b; return next; });
-          refreshSocial(); refreshDuel();
+          if (b && typeof b.pos === "number") {
+            setBlockRows(prev => { const i = prev.findIndex(x => x.pos === b.pos); if (i < 0) return [...prev, b]; const next = [...prev]; next[i] = b; return next; });
+          } else if (payload.old && typeof payload.old.pos === "number") {
+            const gone = payload.old.pos;
+            setBlockRows(prev => prev.filter(x => x.pos !== gone));
+          }
+          scheduleRefresh();   // rajada de N blocos → 1 refresh (debounce 400ms)
         })
         .subscribe();
     })();
-    return () => { if (channel && db) db.removeChannel(channel); };
-  }, [db, duelId, demo, refreshSocial, refreshDuel]);
+    return () => { if (channel && db) db.removeChannel(channel); if (refreshTimer.current) clearTimeout(refreshTimer.current); };
+  }, [db, duelId, demo, refreshSocial, scheduleRefresh]);
 
   // fallback: estado da disputa (prazo 24h / vencedor) a cada 20s
   useEffect(() => {
@@ -181,7 +196,7 @@ function LiveInner({ duelId, demo }) {
 
   const eternalCount = blockRows.filter(b => b.eternal).length;
   const eternalLeft = (duel?.eternal_cap ?? 50) - eternalCount;
-  const cur = CUR[duel?.currency] || duel?.currency || "R$ ";
+  const cur = curSymbol(duel?.currency || "BRL");
   const cfg = duel ? {
     title: duel.title, a: duel.side_a, b: duel.side_b,
     colorA: duel.color_a, colorB: duel.color_b, imgA: duel.img_a, imgB: duel.img_b,
@@ -213,21 +228,26 @@ function LiveInner({ duelId, demo }) {
     } catch { show(t.net_err); setBuy(null); }
   }
 
-  // enquanto o QR está aberto, espera o webhook marcar a transação como paga
+  // enquanto o QR está aberto, espera o webhook marcar a transação como paga.
+  // Passa por /api/txn-status (service_role) — a tabela transactions tem RLS e
+  // o anon não a lê direto (nem pra ver, nem pra forjar status='paid').
   useEffect(() => {
-    if (!buy?.txnId || buy.phase !== "qr" || !db) return;
+    if (!buy?.txnId || buy.phase !== "qr") return;
     const iv = setInterval(async () => {
-      const { data } = await db.from("transactions").select("status").eq("id", buy.txnId).single();
-      if (data?.status === "paid") {
-        clearInterval(iv);
-        setBuy(b => ({ ...b, phase: "paid" }));
-        setCry("");
-        refreshSocial();
-        setTimeout(() => setBuy(null), 2000);
-      }
+      try {
+        const res = await fetch(`/api/txn-status?id=${buy.txnId}`);
+        const data = await res.json();
+        if (data?.status === "paid") {
+          clearInterval(iv);
+          setBuy(b => ({ ...b, phase: "paid" }));
+          setCry("");
+          refreshSocial();
+          setTimeout(() => setBuy(null), 2000);
+        }
+      } catch {}
     }, 3000);
     return () => clearInterval(iv);
-  }, [buy?.txnId, buy?.phase, db, refreshSocial]);
+  }, [buy?.txnId, buy?.phase, refreshSocial]);
 
   /* ---------- telas de borda ---------- */
   if (status === "loading") return <Shell><p style={ST.center}>…</p></Shell>;
@@ -247,8 +267,8 @@ function LiveInner({ duelId, demo }) {
   const holdColor = holdSide === "a" ? cfg.colorA : cfg.colorB;
   const feedItems = feed.map(f => ({
     name: f.buyer_name, side: f.side, cry: f.cry, crew: f.crew, ts: f.paid_at,
-    qty: f.kind === "eternal" ? "★" : (f.positions?.length ?? 0), eternal: f.kind === "eternal",
-    tier: f.kind === "eternal" || Number(f.gross) >= 50 ? 3 : Number(f.gross) >= 15 ? 2 : 1,
+    qty: f.kind === "eternal" ? "★" : (f.block_count ?? 0), eternal: f.kind === "eternal",
+    tier: feedTier(f.gross, f.kind),
   }));
 
   if (tv) {
@@ -305,7 +325,7 @@ function LiveInner({ duelId, demo }) {
       </div>
 
       <div style={{ ...S.byline ?? {}, position: "relative", textAlign: "center", fontFamily: FM, fontSize: 11, color: "#65626f", margin: "12px 0 14px" }}>
-        {cfg.creator && <>por <strong>{cfg.creator}</strong> · 70/30</>}
+        {cfg.creator && <>{t.by} <strong>{cfg.creator}</strong> · 70/30</>}
       </div>
 
       {crews.length > 0 && (
@@ -388,7 +408,7 @@ function LiveInner({ duelId, demo }) {
             </div>
 
             <div style={{ ...S.eternal, borderColor: accent + "66" }}>
-              <div style={S.eternalHead}><div><div style={S.eternalTitle}><span style={{ color: accent }}>★</span> {t.eternal_title}</div><div style={S.eternalSub}>{t.eternal_sub}</div></div><div style={S.eternalScarce}><div style={{ ...S.eternalLeft, color: eternalLeft <= 10 ? "#ff5a4c" : accent }}>{eternalLeft}</div><div style={S.eternalCap}>de {duel?.eternal_cap ?? 50}</div></div></div>
+              <div style={S.eternalHead}><div><div style={S.eternalTitle}><span style={{ color: accent }}>★</span> {t.eternal_title}</div><div style={S.eternalSub}>{t.eternal_sub}</div></div><div style={S.eternalScarce}><div style={{ ...S.eternalLeft, color: eternalLeft <= 10 ? "#ff5a4c" : accent }}>{eternalLeft}</div><div style={S.eternalCap}>{t.eternal_of}</div></div></div>
               <button onClick={() => startBuy("eternal")} disabled={eternalLeft <= 0} style={{ ...S.eternalBtn, borderColor: accent, color: accent, opacity: eternalLeft <= 0 ? 0.4 : 1 }}>{eternalLeft <= 0 ? t.eternal_sold : `${t.eternal_title} · ${cur}${Number(duel?.eternal_price ?? ETERNAL_PRICE).toFixed(0)}`}</button>
             </div>
           </div>
