@@ -2,11 +2,13 @@
   "name": "duality",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "node --test"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",

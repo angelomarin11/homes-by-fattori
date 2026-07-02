@@ -65,21 +65,29 @@ GAME-DESIGN.md          # racional da gamificação v2
 
 ## Estado atual e o que falta (em ordem de prioridade)
 
-O frontend v2 está completo, **compila (`next build` ✓) e foi testado no navegador** (fluxo
-trailer→home→estúdio→jogar→grito→Eterno→TV, sem erros de console/hidratação). Continua em
-**estado local com pagamento simulado**, rotulado como demo. O backend está escrito
-(incluindo cry/crew/flair) mas **nunca foi testado com pagamento real**. Prioridades:
+O frontend v2 está completo, **compila (`next build` ✓), tem testes unitários (`npm test`,
+node --test) e foi testado no navegador** (demo: trailer→home→estúdio→jogar→grito→Eterno→TV;
+upload de imagem dos lados com máscara no tabuleiro verificado; página ao vivo renderizada).
 
-1. **Conectar o frontend ao backend real:** trocar o estado local por leitura do Supabase
-   (Realtime em `blocks`, gritos das últimas `transactions` pagas, `crews`), e o pagamento
-   simulado pela chamada a `/api/charge` + tela de QR/cartão.
-2. **Criar a rota pública `/d/[id]`** que carrega uma disputa específica do banco (hoje o
-   componente tem uma disputa fixa em memória).
-3. **Testar um pagamento real** em sandbox (Pagar.me tem ambiente de teste). Este é o marco
-   que valida tudo.
-4. **Painel de moderação** (remover nomes/gritos/disputas abusivas) — obrigatório antes de
+A **rota pública `/d/[id]` JÁ EXISTE** (`components/duality/LiveDuel.jsx`): lê o Supabase
+(Realtime em `blocks`, gritos das últimas `transactions` pagas, `crews`, ranking), compra
+via `/api/charge` mostrando QR Pix real + polling até o webhook confirmar, hype/TV/equipes
+funcionando com dados reais. Sem env configurada mostra card de setup; `?demo=1` mostra
+pré-visualização rotulada com dados de exemplo. A home (`/`) continua sendo a demo local.
+
+Prioridades:
+
+1. **Testar um pagamento real** em sandbox (Pagar.me tem ambiente de teste). Este é o marco
+   que valida tudo. Falta só infra: projeto Supabase + `db/schema.sql` + função
+   `bump_contribution` + contas de gateway + `.env.local`.
+2. **Painel de moderação** (remover nomes/gritos/disputas abusivas) — obrigatório antes de
    abrir ao público. Grito é conteúdo público pago: precisa de filtro de palavras + remoção.
-5. **QR real no modo TV** (hoje é placeholder visual) — gerar QR do link `/d/[id]`.
+3. **QR real no modo TV** (hoje é placeholder visual) — gerar QR do link `/d/[id]`.
+4. **Promo de primeira jogada no servidor**: a promo "até 5 blocos por R$1" existe só na
+   demo; `/api/charge` não tem noção de "primeira compra" (exigiria identidade). Decidir se
+   vale criar `kind: "first"` com limite por dispositivo/IP ou aceitar sem promo no real.
+5. **Ligar o estúdio (`/`) ao `/api/duels`** quando houver criadores aprovados (hoje o
+   estúdio demonstra e o `/api/duels` já aceita skin/cries/victoryMsg).
 
 ## O que NÃO é código (Angelo precisa providenciar pra publicar)
 

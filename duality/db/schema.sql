@@ -30,6 +30,11 @@ create table duels (
   grid          int not null default 24,
   base_price    numeric(10,2) not null default 2.00,
   currency      text not null default 'BRL',
+  -- personalização do criador (estúdio v2)
+  skin          text not null default 'carvao'      -- carvao | neon | ouro
+                check (skin in ('carvao','neon','ouro')),
+  cries         text[] not null default '{}',       -- gritos prontos da torcida (máx 3)
+  victory_msg   text,                               -- mensagem exibida no monumento
   win_pct       int not null default 80,
   hold_hours    int not null default 24,
   eternal_cap   int not null default 50,

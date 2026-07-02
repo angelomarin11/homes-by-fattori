@@ -11,17 +11,23 @@ export const dynamic = "force-dynamic";
 export async function POST(req) {
   const db = getDb();
   try {
-    const { creatorId, title, sideA, sideB, colorA, colorB, imgA, imgB, currency = "BRL", basePrice = 2 } = await req.json();
+    const { creatorId, title, sideA, sideB, colorA, colorB, imgA, imgB, currency = "BRL", basePrice = 2, skin, cries, victoryMsg } = await req.json();
 
     // só criadores aprovados publicam (curadoria fechada)
     const { data: creator } = await db.from("creators").select("approved").eq("id", creatorId).single();
     if (!creator?.approved) return Response.json({ error: "criador não aprovado" }, { status: 403 });
+
+    // personalização do estúdio v2, sanitizada no servidor
+    const cleanSkin = ["carvao", "neon", "ouro"].includes(skin) ? skin : "carvao";
+    const cleanCries = Array.isArray(cries) ? cries.map(c => String(c).trim().slice(0, 80)).filter(Boolean).slice(0, 3) : [];
+    const cleanVictory = typeof victoryMsg === "string" ? victoryMsg.trim().slice(0, 90) || null : null;
 
     const grid = 24;
     const { data: duel } = await db.from("duels").insert({
       creator_id: creatorId, title, side_a: sideA, side_b: sideB,
       color_a: colorA, color_b: colorB, img_a: imgA || null, img_b: imgB || null,
       grid, base_price: basePrice, currency,
+      skin: cleanSkin, cries: cleanCries, victory_msg: cleanVictory,
     }).select().single();
 
     // semeia os blocos: metade A, metade B, preço base
