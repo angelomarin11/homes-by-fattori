@@ -16,15 +16,19 @@ type Work = {
   image?: string;
 };
 
+// Illustrative style studies — NOT real client commissions. The `location`
+// line describes an architectural style, not a delivered job, so nothing here
+// misrepresents work that hasn't happened yet. Drop a real scan into `image`
+// (and update the caption) as genuine commissions are completed.
 const works: Work[] = [
-  { title: "Bel Air Estate", location: "Los Angeles, CA", format: "A2 Format", h: 760, variant: 2 },
-  { title: "Beachfront Villa", location: "Miami, FL", format: "A3 Format", h: 600, variant: 1 },
-  { title: "Colonial Manor", location: "Greenwich, CT", format: "A2 Format", h: 680, variant: 2 },
-  { title: "Mountain Retreat", location: "Aspen, CO", format: "A3 Format", h: 600, variant: 3 },
-  { title: "High-Rise Penthouse", location: "São Paulo, BR", format: "A3 Format", h: 740, variant: 1 },
-  { title: "Vineyard Estate", location: "Tuscany, IT", format: "A2 Format", h: 600, variant: 0 },
-  { title: "Modern Villa", location: "Hamptons, NY", format: "A3 Format", h: 640, variant: 1 },
-  { title: "Country House", location: "The Cotswolds, UK", format: "A2 Format", h: 720, variant: 3 },
+  { title: "Hillside Estate", location: "Modern Estate", format: "A2 Study", h: 760, variant: 2 },
+  { title: "Beachfront Villa", location: "Coastal Contemporary", format: "A3 Study", h: 600, variant: 1 },
+  { title: "Colonial Manor", location: "Georgian Colonial", format: "A2 Study", h: 680, variant: 2 },
+  { title: "Mountain Retreat", location: "Alpine Lodge", format: "A3 Study", h: 600, variant: 3 },
+  { title: "City Penthouse", location: "Urban High-Rise", format: "A3 Study", h: 740, variant: 1 },
+  { title: "Vineyard Estate", location: "Tuscan Villa", format: "A2 Study", h: 600, variant: 0 },
+  { title: "Shingle Retreat", location: "Coastal Shingle-Style", format: "A3 Study", h: 640, variant: 1 },
+  { title: "Country House", location: "English Country", format: "A2 Study", h: 720, variant: 3 },
 ];
 
 function WorkArt({ work, className }: { work: Work; className: string }) {
@@ -67,13 +71,14 @@ export default function Portfolio() {
     <section id="portfolio" className="bg-cream py-24 md:py-32">
       <div className="container-luxe">
         <Reveal className="mx-auto max-w-2xl text-center">
-          <p className="eyebrow mb-5">Portfolio</p>
-          <h2 className="section-title mb-4">Selected Works</h2>
+          <p className="eyebrow mb-5">The Style</p>
+          <h2 className="section-title mb-4">Every Home, in Pen &amp; Ink</h2>
           <p className="font-cormorant text-xl italic text-graytext">
-            Each portrait is a unique original, never reproduced.
+            Illustrative studies of the hand-drawn treatment — your commission
+            is a unique original, drawn from your own photographs.
           </p>
           <p className="mt-3 font-inter text-xs uppercase tracking-[0.16em] text-navy/45">
-            Artwork shown: reference digital illustrations
+            Reference digital illustrations · not client commissions
           </p>
         </Reveal>
 
