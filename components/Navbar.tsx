@@ -59,10 +59,14 @@ export default function Navbar() {
     };
   }, [open]);
 
+  // Over the dark hero the bar is transparent, so text must be light;
+  // once it turns solid (cream) on scroll or when the menu opens, text is navy.
+  const solid = scrolled || open;
+
   return (
     <header
       className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ease-luxe ${
-        scrolled || open
+        solid
           ? "bg-cream/95 shadow-[0_1px_0_0_rgba(184,150,80,0.18)] backdrop-blur-sm"
           : "bg-transparent"
       }`}
@@ -73,7 +77,9 @@ export default function Navbar() {
       >
         <a
           href="#home"
-          className="font-playfair text-lg md:text-xl tracking-[0.18em] text-navy"
+          className={`font-playfair text-lg md:text-xl tracking-[0.18em] transition-colors duration-300 ${
+            solid ? "text-navy" : "text-cream"
+          }`}
         >
           HOMES BY FATTORI
         </a>
@@ -86,7 +92,11 @@ export default function Navbar() {
                 href={link.href}
                 aria-current={active === link.href ? "true" : undefined}
                 className={`font-inter text-[13px] uppercase tracking-[0.12em] transition-colors duration-300 hover:text-gold ${
-                  active === link.href ? "text-gold" : "text-navy/80"
+                  active === link.href
+                    ? "text-gold"
+                    : solid
+                      ? "text-navy/80"
+                      : "text-cream/80"
                 }`}
               >
                 {link.label}
@@ -109,17 +119,17 @@ export default function Navbar() {
           className="relative z-50 flex h-10 w-10 flex-col items-center justify-center gap-[5px] lg:hidden"
         >
           <span
-            className={`h-px w-6 bg-navy transition-all duration-300 ${
+            className={`h-px w-6 ${solid ? "bg-navy" : "bg-cream"} transition-all duration-300 ${
               open ? "translate-y-[6px] rotate-45" : ""
             }`}
           />
           <span
-            className={`h-px w-6 bg-navy transition-all duration-300 ${
+            className={`h-px w-6 ${solid ? "bg-navy" : "bg-cream"} transition-all duration-300 ${
               open ? "opacity-0" : ""
             }`}
           />
           <span
-            className={`h-px w-6 bg-navy transition-all duration-300 ${
+            className={`h-px w-6 ${solid ? "bg-navy" : "bg-cream"} transition-all duration-300 ${
               open ? "-translate-y-[6px] -rotate-45" : ""
             }`}
           />

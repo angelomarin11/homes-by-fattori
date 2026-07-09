@@ -29,7 +29,7 @@ const items = [
 
 export default function TrustBar() {
   return (
-    <section className="bg-navy">
+    <section className="border-t border-gold/25 bg-navy">
       <div className="container-luxe grid grid-cols-1 gap-6 py-7 sm:grid-cols-3">
         {items.map((item) => (
           <div

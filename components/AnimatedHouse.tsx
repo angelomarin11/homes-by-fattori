@@ -49,11 +49,29 @@ export default function AnimatedHouse({
   className = "",
   stroke = "#1A2E4A",
   gold = "#B89650",
+  trigger = "inView",
+  strokeScale = 1,
 }: {
   className?: string;
   stroke?: string;
   gold?: string;
+  /** "mount" plays immediately (use above the fold); "inView" waits for scroll. */
+  trigger?: "mount" | "inView";
+  /** Multiplier for stroke weight — bump it when drawn large on a dark hero. */
+  strokeScale?: number;
 }) {
+  // whileInView can fail to fire when the element is already on-screen at load
+  // (as in the hero), leaving every path stuck at pathLength 0 — invisible.
+  // trigger="mount" animates on mount instead, which always plays.
+  const playProps =
+    trigger === "mount"
+      ? { initial: "hidden" as const, animate: "visible" as const }
+      : {
+          initial: "hidden" as const,
+          whileInView: "visible" as const,
+          viewport: { once: true, amount: 0.3 },
+        };
+
   return (
     <motion.svg
       viewBox="0 0 520 420"
@@ -61,9 +79,7 @@ export default function AnimatedHouse({
       aria-label="Pen-and-ink illustration of a luxury home, drawing itself"
       className={className}
       xmlns="http://www.w3.org/2000/svg"
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, amount: 0.3 }}
+      {...playProps}
     >
       {strokes.map((s, i) => (
         <motion.path
@@ -71,7 +87,7 @@ export default function AnimatedHouse({
           d={s.d}
           fill="none"
           stroke={s.gold ? gold : stroke}
-          strokeWidth={s.gold ? 1 : 1.4}
+          strokeWidth={(s.gold ? 1.4 : 2) * strokeScale}
           strokeLinecap="round"
           strokeLinejoin="round"
           variants={{
