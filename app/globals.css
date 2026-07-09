@@ -57,6 +57,30 @@ body {
   top: 1rem;
 }
 
+/* Self-drawing illustration: each path normalizes to pathLength=1, so a
+   dash of 1 covers the whole stroke and the offset animates it "on". */
+@keyframes draw-in {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.draw-path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: draw-in 0.9s ease-in-out forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .draw-path {
+    animation: none !important;
+    stroke-dashoffset: 0 !important;
+  }
+}
+
 @layer components {
   .container-luxe {
     @apply mx-auto w-full max-w-content px-6 md:px-10;

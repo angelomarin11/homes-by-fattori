@@ -1,10 +1,10 @@
-"use client";
-
-import { motion } from "framer-motion";
-
 /**
- * The hero house illustration, redrawn as pure paths so each stroke can
- * animate as if a pen were drawing it live ("self-drawing" effect).
+ * The hero house illustration, drawn as pure paths that "draw themselves" in
+ * with a CSS stroke-dashoffset animation. This deliberately avoids framer's
+ * `pathLength` motion value, which in this Next 15 / React 19 setup rendered
+ * the paths with `stroke-dasharray: 1px` and no `pathLength` attribute — i.e.
+ * invisible. Each path here carries `pathLength={1}`, so a dash of 1 spans the
+ * whole stroke and only the offset animates.
  */
 
 type Stroke = {
@@ -49,75 +49,38 @@ export default function AnimatedHouse({
   className = "",
   stroke = "#1A2E4A",
   gold = "#B89650",
-  trigger = "inView",
   strokeScale = 1,
 }: {
   className?: string;
   stroke?: string;
   gold?: string;
-  /** "mount" plays immediately (use above the fold); "inView" waits for scroll. */
-  trigger?: "mount" | "inView";
   /** Multiplier for stroke weight — bump it when drawn large on a dark hero. */
   strokeScale?: number;
 }) {
-  // whileInView can fail to fire when the element is already on-screen at load
-  // (as in the hero), leaving every path stuck at pathLength 0 — invisible.
-  // trigger="mount" animates on mount instead, which always plays.
-  const playProps =
-    trigger === "mount"
-      ? { initial: "hidden" as const, animate: "visible" as const }
-      : {
-          initial: "hidden" as const,
-          whileInView: "visible" as const,
-          viewport: { once: true, amount: 0.3 },
-        };
-
   return (
-    <motion.svg
+    <svg
       viewBox="0 0 520 420"
       role="img"
       aria-label="Pen-and-ink illustration of a luxury home, drawing itself"
       className={className}
       xmlns="http://www.w3.org/2000/svg"
-      {...playProps}
     >
       {strokes.map((s, i) => (
-        <motion.path
+        <path
           key={s.d}
+          className="draw-path"
           d={s.d}
+          pathLength={1}
           fill="none"
           stroke={s.gold ? gold : stroke}
           strokeWidth={(s.gold ? 1.4 : 2) * strokeScale}
           strokeLinecap="round"
           strokeLinejoin="round"
-          variants={{
-            hidden: { pathLength: 0, opacity: 0 },
-            visible: {
-              pathLength: 1,
-              opacity: 1,
-              transition: {
-                pathLength: {
-                  duration: 0.9,
-                  delay: 0.25 + i * 0.13,
-                  ease: "easeInOut",
-                },
-                opacity: { duration: 0.01, delay: 0.25 + i * 0.13 },
-              },
-            },
-          }}
+          style={{ animationDelay: `${0.25 + i * 0.13}s` }}
         />
       ))}
-      {/* door knob appears after the door is drawn */}
-      <motion.circle
-        cx="250"
-        cy="320"
-        r="2"
-        fill={gold}
-        variants={{
-          hidden: { opacity: 0 },
-          visible: { opacity: 1, transition: { delay: 1.4 } },
-        }}
-      />
-    </motion.svg>
+      {/* door knob */}
+      <circle cx="250" cy="320" r="2.4" fill={gold} />
+    </svg>
   );
 }

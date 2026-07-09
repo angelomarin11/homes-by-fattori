@@ -20,17 +20,6 @@ export default function Hero() {
         aria-hidden
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_35%,rgba(0,0,0,0.45)_100%)]"
       />
-      {/* fine paper/ink grain */}
-      <svg
-        aria-hidden
-        className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.06] mix-blend-screen"
-      >
-        <filter id="hero-grain">
-          <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" />
-          <feColorMatrix type="saturate" values="0" />
-        </filter>
-        <rect width="100%" height="100%" filter="url(#hero-grain)" />
-      </svg>
       {/* thin gold frame inset */}
       <div
         aria-hidden
@@ -93,7 +82,6 @@ export default function Hero() {
               className="h-auto w-full drop-shadow-[0_8px_30px_rgba(0,0,0,0.35)]"
               stroke="#FAF8F3"
               gold="#D9B45B"
-              trigger="mount"
               strokeScale={1.25}
             />
             <p className="mt-6 text-center font-inter text-[10px] uppercase tracking-[0.28em] text-cream/40">
