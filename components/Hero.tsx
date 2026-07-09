@@ -1,6 +1,3 @@
-"use client";
-
-import { motion } from "framer-motion";
 import AnimatedHouse from "./AnimatedHouse";
 
 export default function Hero() {
@@ -28,12 +25,7 @@ export default function Hero() {
 
       <div className="container-luxe relative z-10 grid items-center gap-12 lg:grid-cols-2 lg:gap-8">
         {/* Left — text */}
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          className="order-2 lg:order-1"
-        >
+        <div className="fade-up order-2 lg:order-1">
           <p className="mb-6 font-inter text-xs uppercase tracking-[0.3em] text-gold">
             Bespoke Architectural Portraits
           </p>
@@ -68,14 +60,12 @@ export default function Hero() {
               </span>
             </a>
           </div>
-        </motion.div>
+        </div>
 
         {/* Right — the self-drawing illustration */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.96 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
-          className="order-1 flex justify-center lg:order-2"
+        <div
+          className="fade-up order-1 flex justify-center lg:order-2"
+          style={{ animationDelay: "0.15s" }}
         >
           <div className="relative w-full max-w-lg">
             <AnimatedHouse
@@ -88,7 +78,7 @@ export default function Hero() {
               Illustrative · every commission is a unique original
             </p>
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );
