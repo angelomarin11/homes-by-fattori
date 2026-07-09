@@ -1,10 +1,13 @@
+"use client";
+
+import { useEffect, useRef } from "react";
+
 /**
- * The hero house illustration, drawn as pure paths that "draw themselves" in
- * with a CSS stroke-dashoffset animation. This deliberately avoids framer's
- * `pathLength` motion value, which in this Next 15 / React 19 setup rendered
- * the paths with `stroke-dasharray: 1px` and no `pathLength` attribute — i.e.
- * invisible. Each path here carries `pathLength={1}`, so a dash of 1 spans the
- * whole stroke and only the offset animates.
+ * The hero house illustration. Renders fully visible by default (so it ALWAYS
+ * shows, even without JS), then on mount measures each path's real length and
+ * animates stroke-dashoffset to draw it "on". We measure with getTotalLength()
+ * because normalized `pathLength` dash scaling is unreliable across browsers —
+ * an earlier attempt left every stroke as invisible 1px dashes.
  */
 
 type Stroke = {
@@ -57,26 +60,45 @@ export default function AnimatedHouse({
   /** Multiplier for stroke weight — bump it when drawn large on a dark hero. */
   strokeScale?: number;
 }) {
+  const ref = useRef<SVGSVGElement>(null);
+
+  useEffect(() => {
+    const svg = ref.current;
+    if (!svg) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const paths = Array.from(svg.querySelectorAll<SVGPathElement>("path"));
+    paths.forEach((p, i) => {
+      const len = p.getTotalLength();
+      p.style.strokeDasharray = `${len}`;
+      p.style.strokeDashoffset = `${len}`;
+      // Force layout so the starting offset is committed before we transition.
+      void p.getBoundingClientRect();
+      p.style.transition = `stroke-dashoffset 0.9s ease-in-out ${
+        0.2 + i * 0.13
+      }s`;
+      p.style.strokeDashoffset = "0";
+    });
+  }, []);
+
   return (
     <svg
+      ref={ref}
       viewBox="0 0 520 420"
       role="img"
       aria-label="Pen-and-ink illustration of a luxury home, drawing itself"
       className={className}
       xmlns="http://www.w3.org/2000/svg"
     >
-      {strokes.map((s, i) => (
+      {strokes.map((s) => (
         <path
           key={s.d}
-          className="draw-path"
           d={s.d}
-          pathLength={1}
           fill="none"
           stroke={s.gold ? gold : stroke}
           strokeWidth={(s.gold ? 1.4 : 2) * strokeScale}
           strokeLinecap="round"
           strokeLinejoin="round"
-          style={{ animationDelay: `${0.25 + i * 0.13}s` }}
         />
       ))}
       {/* door knob */}
