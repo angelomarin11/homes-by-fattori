@@ -143,7 +143,7 @@ export default function Navbar() {
       <div
         id="mobile-menu"
         aria-hidden={!open}
-        className={`fixed inset-0 z-40 flex flex-col bg-cream px-6 pt-28 transition-all duration-500 ease-luxe lg:hidden ${
+        className={`fixed inset-0 z-40 flex flex-col bg-cream px-6 pt-28 transition-all duration-500 ease-luxe xl:hidden ${
           open
             ? "pointer-events-auto opacity-100"
             : "pointer-events-none opacity-0"
