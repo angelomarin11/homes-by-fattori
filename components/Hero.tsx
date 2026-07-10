@@ -17,13 +17,13 @@ export default function Hero() {
         className="ken-burns object-cover object-center"
       />
 
-      {/* Readability + mood layers */}
-      {/* left-to-right scrim so the headline reads while the estate stays visible */}
-      <div className="absolute inset-0 bg-gradient-to-r from-navy/95 via-navy/70 to-navy/25" />
+      {/* Readability + mood layers (kept light so the lit estate stays visible) */}
+      {/* left-to-right scrim: dark behind the headline, clear over the estate */}
+      <div className="absolute inset-0 bg-gradient-to-r from-navy/90 via-navy/45 to-transparent" />
       {/* top scrim for navbar contrast over the bright dusk sky */}
-      <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-navy/85 to-transparent" />
-      {/* warm bottom vignette */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_120%,transparent_45%,rgba(8,16,32,0.55)_100%)]" />
+      <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-navy/70 to-transparent" />
+      {/* faint bottom grounding so the scroll cue reads */}
+      <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-navy/50 to-transparent" />
       {/* thin gold frame */}
       <div
         aria-hidden
