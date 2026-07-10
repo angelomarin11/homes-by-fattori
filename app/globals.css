@@ -147,6 +147,28 @@ body {
   }
 }
 
+/* Gentle "scroll down" cue in the hero. */
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.55;
+  }
+  50% {
+    transform: translateY(7px);
+    opacity: 1;
+  }
+}
+.scroll-cue {
+  animation: bob 1.9s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-cue {
+    animation: none;
+  }
+}
+
 /* Legal / policy page prose */
 .legal-prose h2 {
   @apply mb-3 mt-10 font-playfair text-2xl text-navy;
