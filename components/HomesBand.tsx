@@ -18,12 +18,12 @@ export default function HomesBand() {
         sizes="100vw"
         className="object-cover"
       />
-      {/* darkening + vignette so the type reads and it feels cinematic */}
-      <div className="absolute inset-0 bg-navy/75" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_25%,rgba(8,16,32,0.75)_100%)]" />
+      {/* darkening + vignette so the type reads while the home stays visible */}
+      <div className="absolute inset-0 bg-navy/45" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(8,16,32,0.15)_30%,rgba(8,16,32,0.7)_100%)]" />
 
       <div className="container-luxe relative z-10 text-center">
-        <p className="mx-auto max-w-3xl font-cormorant text-3xl italic leading-snug text-cream md:text-5xl">
+        <p className="mx-auto max-w-3xl font-cormorant text-3xl italic leading-snug text-cream drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)] md:text-5xl">
           &ldquo;Every home has a story worth preserving.&rdquo;
         </p>
         <div className="mx-auto mt-8 h-px w-16 bg-gold" />
