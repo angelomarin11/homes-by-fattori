@@ -17,27 +17,42 @@ const JOBS = [
 async function process(srcFile, slug) {
   const base = sharp(path.join(dir, srcFile)).resize(W).removeAlpha();
 
-  // Stage 2 — pencil sketch (color-dodge)
+  // Stage 2 — pencil sketch (color-dodge), deepened so it reads confidently
   const gray = await base.clone().grayscale().toBuffer();
-  const invBlur = await sharp(gray).negate().blur(12).toBuffer();
+  const invBlur = await sharp(gray).negate().blur(11).toBuffer();
   const sketchBuf = await sharp(gray)
     .composite([{ input: invBlur, blend: "colour-dodge" }])
-    .linear(1.15, -18)
+    .linear(1.35, -42)
     .toBuffer();
+  const meta = await sharp(sketchBuf).metadata();
   await sharp(sketchBuf).png().toFile(path.join(dir, `${slug}-sketch.png`));
 
-  // Stage 3 — painted (pale watercolour wash + pencil shading)
-  const meta = await sharp(sketchBuf).metadata();
+  // Crisp ink outlines (Laplacian) for the painted stage
+  const edges = await base
+    .clone()
+    .grayscale()
+    .blur(0.5)
+    .convolve({ width: 3, height: 3, kernel: [0, -1, 0, -1, 4, -1, 0, -1, 0] })
+    .linear(9, 0)
+    .negate()
+    .median(2)
+    .toBuffer();
+
+  // Stage 3 — painted (watercolour washes + ink linework)
   const wash = await base
     .clone()
-    .median(9)
-    .modulate({ saturation: 1.4 })
-    .linear(0.72, 64)
+    .median(14) // big flat painterly washes, not photographic detail
+    .modulate({ saturation: 1.55, brightness: 1.1 })
+    .blur(1.4) // soft bleeding edges
+    .linear(0.82, 40) // translucent, paper showing through
     .toBuffer();
-  const pencil = await sharp(sketchBuf).linear(1.35, -34).toBuffer();
+  const pencil = await sharp(sketchBuf).linear(1.2, -26).toBuffer();
   await sharp(wash)
     .resize(meta.width, meta.height)
-    .composite([{ input: pencil, blend: "multiply" }])
+    .composite([
+      { input: pencil, blend: "multiply" },
+      { input: edges, blend: "multiply" },
+    ])
     .png()
     .toFile(path.join(dir, `${slug}-painted.png`));
 
