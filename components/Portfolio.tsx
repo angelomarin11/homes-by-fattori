@@ -20,15 +20,14 @@ type Work = {
 // line describes an architectural style, not a delivered job, so nothing here
 // misrepresents work that hasn't happened yet. Drop a real scan into `image`
 // (and update the caption) as genuine commissions are completed.
+// One piece per distinct illustration — no repeated artwork. Each is a
+// labelled style study, not a client commission. Drop a real scan into
+// `image` (and update the caption) as genuine commissions are completed.
 const works: Work[] = [
-  { title: "Hillside Estate", location: "Modern Estate", format: "A2 Study", h: 760, variant: 2 },
-  { title: "Beachfront Villa", location: "Coastal Contemporary", format: "A3 Study", h: 600, variant: 1 },
-  { title: "Colonial Manor", location: "Georgian Colonial", format: "A2 Study", h: 680, variant: 2 },
-  { title: "Mountain Retreat", location: "Alpine Lodge", format: "A3 Study", h: 600, variant: 3 },
-  { title: "City Penthouse", location: "Urban High-Rise", format: "A3 Study", h: 740, variant: 1 },
-  { title: "Vineyard Estate", location: "Tuscan Villa", format: "A2 Study", h: 600, variant: 0 },
-  { title: "Shingle Retreat", location: "Coastal Shingle-Style", format: "A3 Study", h: 640, variant: 1 },
-  { title: "Country House", location: "English Country", format: "A2 Study", h: 720, variant: 3 },
+  { title: "Gable Estate", location: "Classic Two-Storey", format: "A2 Study", h: 720, variant: 0 },
+  { title: "Modern Villa", location: "Flat-Roof Contemporary", format: "A3 Study", h: 720, variant: 1 },
+  { title: "Georgian Colonial", location: "Columned Portico", format: "A2 Study", h: 720, variant: 2 },
+  { title: "Country Cottage", location: "Twin-Gable & Chimney", format: "A3 Study", h: 720, variant: 3 },
 ];
 
 function WorkArt({ work, className }: { work: Work; className: string }) {
@@ -82,11 +81,11 @@ export default function Portfolio() {
           </p>
         </Reveal>
 
-        {/* Masonry via CSS columns: 1 / 2 / 3 columns */}
-        <div className="mt-16 columns-1 gap-6 sm:columns-2 lg:columns-3 [&>*]:mb-6">
+        {/* Four distinct framed pieces in a two-column gallery */}
+        <div className="mx-auto mt-16 grid max-w-4xl grid-cols-1 gap-8 sm:grid-cols-2">
           {works.map((work, i) => (
             <Reveal key={work.title} delay={(i % 3) * 0.08}>
-              <figure className="group relative block break-inside-avoid overflow-hidden">
+              <figure className="group relative block overflow-hidden border border-navy/10 shadow-[0_12px_34px_-20px_rgba(26,46,74,0.55)] transition-shadow duration-500 hover:shadow-[0_22px_48px_-22px_rgba(26,46,74,0.6)]">
                 <button
                   type="button"
                   onClick={() => setSelected(work)}

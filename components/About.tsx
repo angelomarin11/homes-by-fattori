@@ -1,75 +1,28 @@
+import Image from "next/image";
 import Reveal from "./Reveal";
 import Parallax from "./Parallax";
-
-/**
- * Elegant local placeholder until a real artist photograph is supplied —
- * drop `artist.jpg` into /public/images and swap this for a next/image.
- */
-function ArtistPlaceholder() {
-  return (
-    <svg
-      viewBox="0 0 600 720"
-      role="img"
-      aria-label="Telma Fattori, architect and illustrator"
-      className="h-auto w-full"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <rect width="600" height="720" fill="#1A2E4A" />
-      <rect
-        x="28"
-        y="28"
-        width="544"
-        height="664"
-        fill="none"
-        stroke="#B89650"
-        strokeOpacity="0.5"
-      />
-      <text
-        x="300"
-        y="330"
-        textAnchor="middle"
-        fontFamily="Georgia, 'Times New Roman', serif"
-        fontSize="120"
-        fill="#B89650"
-      >
-        TF
-      </text>
-      <line x1="240" y1="380" x2="360" y2="380" stroke="#B89650" strokeOpacity="0.6" />
-      <text
-        x="300"
-        y="430"
-        textAnchor="middle"
-        fontFamily="Georgia, 'Times New Roman', serif"
-        fontStyle="italic"
-        fontSize="30"
-        fill="#FAF8F3"
-      >
-        Telma Fattori
-      </text>
-      <text
-        x="300"
-        y="470"
-        textAnchor="middle"
-        fontFamily="Arial, sans-serif"
-        fontSize="15"
-        letterSpacing="4"
-        fill="#B89650"
-      >
-        ARCHITECT · ILLUSTRATOR
-      </text>
-    </svg>
-  );
-}
 
 export default function About() {
   return (
     <section id="about" className="bg-cream py-24 md:py-32">
       <div className="container-luxe grid items-center gap-14 lg:grid-cols-2 lg:gap-20">
-        {/* Left — portrait of the artist */}
+        {/* Left — craft imagery (no fabricated artist photo; this is the tooling
+            of the craft, not a portrait of a person) */}
         <Reveal className="order-2 lg:order-1">
           <Parallax offset={28} className="relative mx-auto max-w-md">
             <div className="absolute -bottom-4 -left-4 -z-10 h-full w-full border border-gold/40" />
-            <ArtistPlaceholder />
+            <div className="relative aspect-[4/5] w-full overflow-hidden bg-navy">
+              <Image
+                src="/images/craft-ink.jpg"
+                alt="A fountain pen nib resting on paper"
+                fill
+                sizes="(max-width: 1024px) 90vw, 40vw"
+                className="object-cover"
+              />
+            </div>
+            <p className="mt-4 text-center font-inter text-[10px] uppercase tracking-[0.24em] text-navy/45">
+              Pen &amp; ink — the tools of the craft
+            </p>
           </Parallax>
         </Reveal>
 

@@ -34,8 +34,8 @@ export default function ForRealtors() {
               memory — and keeps your name on their walls, long after closing.
             </p>
             <p>
-              Top real estate professionals across the US use our portraits as
-              premium closing gifts for luxury properties.
+              Designed to be the closing gift your luxury clients actually keep
+              — displayed on their walls for years, not forgotten in a drawer.
             </p>
           </div>
 

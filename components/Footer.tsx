@@ -8,9 +8,9 @@ const navigation = [
 ];
 
 const legal = [
-  { label: "Privacy Policy", href: "#" },
-  { label: "Terms & Conditions", href: "#" },
-  { label: "Shipping Policy", href: "#" },
+  { label: "Privacy Policy", href: "/privacy" },
+  { label: "Terms & Conditions", href: "/terms" },
+  { label: "Shipping Policy", href: "/shipping" },
 ];
 
 export default function Footer() {

@@ -1,18 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Reveal from "./Reveal";
-import AnimatedHouse from "./AnimatedHouse";
 
 /**
- * Ambient studio film. Plays /videos/studio.mp4 (muted, looped) when the
- * file exists; until then it falls back to the self-drawing house
- * animation so the section stays alive. Drop your film at
- * public/videos/studio.mp4.
+ * "Behind the Ink" studio section. Plays /videos/studio.mp4 (muted, looped)
+ * when the file exists; until then it shows a photograph of the hand-drawing
+ * process. Drop your film at public/videos/studio.mp4.
  */
 export default function StudioFilm() {
-  // Fallback by default; swap the video in only once we know the file exists
-  // (a native onError can fire before hydration and be missed).
   const [videoAvailable, setVideoAvailable] = useState(false);
 
   useEffect(() => {
@@ -38,8 +35,8 @@ export default function StudioFilm() {
             Behind the Ink
           </h2>
           <p className="mt-4 font-cormorant text-xl italic text-cream/80">
-            Every line is drawn by hand — watch the process unfold, from the
-            first pencil guide to the final golden detail.
+            Pencil guide first, then pen, then the final golden detail — every
+            line drawn by hand.
           </p>
         </Reveal>
 
@@ -57,11 +54,13 @@ export default function StudioFilm() {
                 aria-label="Time-lapse of a home portrait being drawn by hand"
               />
             ) : (
-              <div className="flex aspect-video w-full items-center justify-center bg-[#16273f]">
-                <AnimatedHouse
-                  className="h-full max-h-full w-auto p-6 md:p-10"
-                  stroke="#FAF8F3"
-                  gold="#B89650"
+              <div className="relative aspect-video w-full overflow-hidden">
+                <Image
+                  src="/images/craft-sketch.jpg"
+                  alt="An architect drawing a home by hand in pencil and ink"
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 900px"
+                  className="object-cover"
                 />
               </div>
             )}

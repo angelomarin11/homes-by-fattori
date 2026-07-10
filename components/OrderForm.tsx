@@ -342,7 +342,25 @@ export default function OrderForm() {
                       })}
                     />
                     <span>
-                      I agree to the Terms &amp; Conditions and Privacy Policy. *
+                      I agree to the{" "}
+                      <a
+                        href="/terms"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-navy underline underline-offset-2 hover:text-gold"
+                      >
+                        Terms &amp; Conditions
+                      </a>{" "}
+                      and{" "}
+                      <a
+                        href="/privacy"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-navy underline underline-offset-2 hover:text-gold"
+                      >
+                        Privacy Policy
+                      </a>
+                      . *
                     </span>
                   </label>
                   {errors.agree && (

@@ -104,6 +104,20 @@ body {
   }
 }
 
+/* Legal / policy page prose */
+.legal-prose h2 {
+  @apply mb-3 mt-10 font-playfair text-2xl text-navy;
+}
+.legal-prose p {
+  @apply mb-5;
+}
+.legal-prose ul {
+  @apply mb-5 list-disc space-y-1 pl-5;
+}
+.legal-prose a {
+  @apply text-gold underline underline-offset-2 hover:text-navy;
+}
+
 @layer components {
   .container-luxe {
     @apply mx-auto w-full max-w-content px-6 md:px-10;
