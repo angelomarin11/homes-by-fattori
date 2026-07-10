@@ -20,6 +20,21 @@ html {
   }
 }
 
+/* Lenis smooth scroll */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
 body {
   background-color: var(--color-cream);
   color: #555555;
@@ -98,6 +113,18 @@ body {
   animation: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.fade-in {
+  animation: fade-in 0.3s ease both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .fade-up {
     animation: none;
@@ -169,35 +196,51 @@ body {
   }
 }
 
-/* Photograph → hand-drawn transformation: the ink-filtered copy fades in and
-   out over the photo, so the home appears to "become a drawing". */
-@keyframes photo-to-sketch {
+/* Three-stage transformation: photograph → pencil sketch → painted drawing,
+   looping. Layer B (sketch) and layer C (painted) fade in over the photo in
+   sequence; the painted layer sits on top. */
+@keyframes reveal-b {
   0%,
   12% {
     opacity: 0;
   }
-  44%,
-  62% {
+  22%,
+  42% {
     opacity: 1;
   }
-  92%,
+  52%,
   100% {
     opacity: 0;
   }
 }
-.reveal-sketch {
-  animation: photo-to-sketch 9s ease-in-out infinite;
-}
-.reveal-badge {
-  animation: photo-to-sketch 9s ease-in-out infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .reveal-sketch {
-    animation: none;
+@keyframes reveal-c {
+  0%,
+  44% {
+    opacity: 0;
+  }
+  54%,
+  80% {
     opacity: 1;
   }
-  .reveal-badge {
+  90%,
+  100% {
+    opacity: 0;
+  }
+}
+.reveal-b {
+  animation: reveal-b 12s ease-in-out infinite;
+}
+.reveal-c {
+  animation: reveal-c 12s ease-in-out infinite;
+}
+
+/* Static, honest end-state for reduced motion: show the finished painting. */
+@media (prefers-reduced-motion: reduce) {
+  .reveal-b {
+    animation: none;
+    opacity: 0;
+  }
+  .reveal-c {
     animation: none;
     opacity: 1;
   }

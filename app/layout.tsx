@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Playfair_Display, Inter, Cormorant_Garamond } from "next/font/google";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import MotionProvider from "@/components/MotionProvider";
+import SmoothScroll from "@/components/SmoothScroll";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -161,6 +162,7 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
+        <SmoothScroll />
         <MotionProvider>{children}</MotionProvider>
         {gaId ? <GoogleAnalytics gaId={gaId} /> : null}
       </body>

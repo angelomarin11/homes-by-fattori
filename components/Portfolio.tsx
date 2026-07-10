@@ -2,57 +2,53 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { AnimatePresence, motion } from "framer-motion";
 import Reveal from "./Reveal";
-import PortraitSketch from "./PortraitSketch";
 
 type Work = {
   title: string;
-  location: string;
+  style: string;
   format: string;
-  h: number;
-  variant: number;
-  /** Path to a real scan under /public (e.g. "/images/portfolio-01.jpg"). */
-  image?: string;
+  painted: string;
+  photo: string;
 };
 
-// Illustrative style studies — NOT real client commissions. The `location`
-// line describes an architectural style, not a delivered job, so nothing here
-// misrepresents work that hasn't happened yet. Drop a real scan into `image`
-// (and update the caption) as genuine commissions are completed.
-// One piece per distinct illustration — no repeated artwork. Each is a
-// labelled style study, not a client commission. Drop a real scan into
-// `image` (and update the caption) as genuine commissions are completed.
+// Illustrative examples — each is a DIGITAL SIMULATION of the hand-drawn
+// treatment applied to a stock photograph, NOT a real client commission and
+// NOT one of Telma's actual originals (see the honest caption below).
 const works: Work[] = [
-  { title: "Gable Estate", location: "Classic Two-Storey", format: "A2 Study", h: 720, variant: 0 },
-  { title: "Modern Villa", location: "Flat-Roof Contemporary", format: "A3 Study", h: 720, variant: 1 },
-  { title: "Georgian Colonial", location: "Columned Portico", format: "A2 Study", h: 720, variant: 2 },
-  { title: "Country Cottage", location: "Twin-Gable & Chimney", format: "A3 Study", h: 720, variant: 3 },
+  {
+    title: "Gable Estate",
+    style: "Classic Brick Two-Storey",
+    format: "A2 Study",
+    painted: "/images/facade-a-painted.png",
+    photo: "/images/facade-a.jpg",
+  },
+  {
+    title: "Modern Villa",
+    style: "Flat-Roof Contemporary",
+    format: "A3 Study",
+    painted: "/images/facade-b-painted.png",
+    photo: "/images/facade-b.jpg",
+  },
+  {
+    title: "Colonial Manor",
+    style: "Columned Portico",
+    format: "A2 Study",
+    painted: "/images/facade-c-painted.png",
+    photo: "/images/facade-c.jpg",
+  },
+  {
+    title: "Country Estate",
+    style: "Gardens & Gables",
+    format: "A3 Study",
+    painted: "/images/home-painted.png",
+    photo: "/images/home.jpg",
+  },
 ];
-
-function WorkArt({ work, className }: { work: Work; className: string }) {
-  return work.image ? (
-    <Image
-      src={work.image}
-      alt={`${work.title}, ${work.location} — hand-drawn architectural portrait`}
-      width={600}
-      height={work.h}
-      className={className}
-    />
-  ) : (
-    <PortraitSketch
-      title={work.title}
-      variant={work.variant}
-      height={work.h}
-      className={className}
-    />
-  );
-}
 
 export default function Portfolio() {
   const [selected, setSelected] = useState<Work | null>(null);
 
-  // Lock body scroll and close on Escape while the lightbox is open.
   useEffect(() => {
     if (!selected) return;
     document.body.style.overflow = "hidden";
@@ -71,49 +67,57 @@ export default function Portfolio() {
       <div className="container-luxe">
         <Reveal className="mx-auto max-w-2xl text-center">
           <p className="eyebrow mb-5">The Style</p>
-          <h2 className="section-title mb-4">Every Home, in Pen &amp; Ink</h2>
+          <h2 className="section-title mb-4">Every Home, Reimagined</h2>
           <p className="font-cormorant text-xl italic text-graytext">
-            Illustrative studies of the hand-drawn treatment — your commission
-            is a unique original, drawn from your own photographs.
+            Hover a piece to see the photograph it began as — your commission is
+            a unique original, drawn from your own home.
           </p>
           <p className="mt-3 font-inter text-xs uppercase tracking-[0.16em] text-navy/45">
-            Reference digital illustrations · not client commissions
+            Illustrative examples · digital simulations — final portraits are
+            hand-drawn
           </p>
         </Reveal>
 
-        {/* Four distinct framed pieces in a two-column gallery */}
         <div className="mx-auto mt-16 grid max-w-4xl grid-cols-1 gap-8 sm:grid-cols-2">
           {works.map((work, i) => (
-            <Reveal key={work.title} delay={(i % 3) * 0.08}>
-              <figure className="group relative block overflow-hidden border border-navy/10 shadow-[0_12px_34px_-20px_rgba(26,46,74,0.55)] transition-shadow duration-500 hover:shadow-[0_22px_48px_-22px_rgba(26,46,74,0.6)]">
+            <Reveal key={work.title} delay={(i % 2) * 0.1}>
+              <figure className="group overflow-hidden border border-navy/10 bg-cream shadow-[0_12px_34px_-20px_rgba(26,46,74,0.55)] transition-shadow duration-500 hover:shadow-[0_22px_48px_-22px_rgba(26,46,74,0.6)]">
                 <button
                   type="button"
                   onClick={() => setSelected(work)}
-                  aria-label={`View ${work.title}, ${work.location}`}
-                  className="block w-full cursor-zoom-in"
+                  aria-label={`Enlarge ${work.title}`}
+                  className="relative block aspect-[4/3] w-full cursor-zoom-in overflow-hidden"
                 >
-                  {/* Ken Burns: slow zoom + drift on hover/focus */}
-                  <WorkArt
-                    work={work}
-                    className="h-auto w-full object-cover transition-transform duration-[2500ms] ease-luxe group-hover:scale-[1.06] group-hover:-translate-y-1 group-focus-within:scale-[1.06] motion-reduce:transition-none motion-reduce:group-hover:scale-100 motion-reduce:group-hover:translate-y-0"
+                  {/* Painted artwork (default) */}
+                  <Image
+                    src={work.painted}
+                    alt={`${work.title} — ${work.style}, rendered as a painted drawing`}
+                    fill
+                    sizes="(max-width: 640px) 90vw, 420px"
+                    className="object-cover"
                   />
-                  {/* Overlay revealed on hover or keyboard focus */}
-                  <figcaption className="absolute inset-0 flex flex-col items-center justify-center bg-navy/0 px-4 text-center opacity-0 transition-all duration-500 ease-luxe group-hover:bg-navy/70 group-hover:opacity-100 group-focus-within:bg-navy/70 group-focus-within:opacity-100 motion-reduce:transition-none">
-                    <span className="font-playfair text-2xl text-cream">
-                      {work.title}
-                    </span>
-                    <span className="mt-2 h-px w-10 bg-gold" />
-                    <span className="mt-3 font-inter text-[11px] uppercase tracking-[0.2em] text-cream/85">
-                      {work.location}
-                    </span>
-                    <span className="mt-1 font-inter text-[11px] uppercase tracking-[0.2em] text-gold">
-                      {work.format}
-                    </span>
-                    <span className="mt-5 font-cormorant text-lg italic text-cream/80">
-                      Click to enlarge
-                    </span>
-                  </figcaption>
+                  {/* Real photograph, revealed on hover/focus */}
+                  <Image
+                    src={work.photo}
+                    alt=""
+                    aria-hidden
+                    fill
+                    sizes="(max-width: 640px) 90vw, 420px"
+                    className="object-cover opacity-0 transition-opacity duration-700 ease-luxe group-hover:opacity-100 group-focus-within:opacity-100 motion-reduce:transition-none"
+                  />
+                  {/* Small hover hint */}
+                  <span className="absolute bottom-3 right-3 bg-navy/75 px-3 py-1 font-inter text-[10px] uppercase tracking-[0.18em] text-cream opacity-0 backdrop-blur-sm transition-opacity duration-500 group-hover:opacity-100">
+                    The photograph
+                  </span>
                 </button>
+                <figcaption className="flex items-baseline justify-between gap-3 px-5 py-4">
+                  <span className="font-playfair text-lg text-navy">
+                    {work.title}
+                  </span>
+                  <span className="font-inter text-[10px] uppercase tracking-[0.16em] text-gold">
+                    {work.format}
+                  </span>
+                </figcaption>
               </figure>
             </Reveal>
           ))}
@@ -127,69 +131,67 @@ export default function Portfolio() {
         </Reveal>
       </div>
 
-      {/* Lightbox */}
-      <AnimatePresence>
-        {selected && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            role="dialog"
-            aria-modal="true"
-            aria-label={`${selected.title}, ${selected.location}`}
-            onClick={() => setSelected(null)}
-            className="fixed inset-0 z-[70] flex items-center justify-center bg-navy/90 p-6 backdrop-blur-sm"
+      {/* Lightbox (plain CSS, no framer) */}
+      {selected && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${selected.title}, ${selected.style}`}
+          onClick={() => setSelected(null)}
+          className="fade-in fixed inset-0 z-[70] flex items-center justify-center bg-navy/90 p-6 backdrop-blur-sm"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-2xl bg-cream p-4 shadow-2xl md:p-6"
           >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.94, y: 16 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: 8 }}
-              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-              onClick={(e) => e.stopPropagation()}
-              className="relative max-h-full w-full max-w-2xl overflow-y-auto bg-cream p-4 shadow-2xl md:p-6"
-            >
-              <WorkArt work={selected} className="h-auto w-full" />
-              <div className="flex items-end justify-between gap-4 px-1 pt-4">
-                <div>
-                  <p className="font-playfair text-2xl text-navy">
-                    {selected.title}
-                  </p>
-                  <p className="mt-1 font-inter text-[11px] uppercase tracking-[0.2em] text-graytext">
-                    {selected.location} · {selected.format}
-                  </p>
-                </div>
-                <a
-                  href="#order"
-                  onClick={() => setSelected(null)}
-                  className="link-arrow shrink-0 text-lg"
-                >
-                  Commission yours <span aria-hidden>&rarr;</span>
-                </a>
+            <div className="relative aspect-[4/3] w-full overflow-hidden">
+              <Image
+                src={selected.painted}
+                alt={`${selected.title} — painted drawing`}
+                fill
+                sizes="(max-width: 768px) 90vw, 640px"
+                className="object-cover"
+              />
+            </div>
+            <div className="flex items-end justify-between gap-4 px-1 pt-4">
+              <div>
+                <p className="font-playfair text-2xl text-navy">
+                  {selected.title}
+                </p>
+                <p className="mt-1 font-inter text-[11px] uppercase tracking-[0.2em] text-graytext">
+                  {selected.style} · {selected.format}
+                </p>
               </div>
-              <button
-                type="button"
+              <a
+                href="#order"
                 onClick={() => setSelected(null)}
-                aria-label="Close"
-                autoFocus
-                className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center bg-navy text-cream transition-colors hover:bg-gold hover:text-navy"
+                className="link-arrow shrink-0 text-lg"
               >
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.6"
-                  strokeLinecap="round"
-                  className="h-5 w-5"
-                  aria-hidden
-                >
-                  <path d="M6 6l12 12M18 6L6 18" />
-                </svg>
-              </button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+                Commission yours <span aria-hidden>&rarr;</span>
+              </a>
+            </div>
+            <button
+              type="button"
+              onClick={() => setSelected(null)}
+              aria-label="Close"
+              autoFocus
+              className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center bg-navy text-cream transition-colors hover:bg-gold hover:text-navy"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                className="h-5 w-5"
+                aria-hidden
+              >
+                <path d="M6 6l12 12M18 6L6 18" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
