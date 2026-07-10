@@ -77,21 +77,21 @@ export default function Navbar() {
       >
         <a
           href="#home"
-          className={`font-playfair text-lg md:text-xl tracking-[0.18em] transition-colors duration-300 ${
+          className={`shrink-0 whitespace-nowrap font-playfair text-lg md:text-xl tracking-[0.16em] transition-colors duration-300 ${
             solid ? "text-navy" : "text-cream"
           }`}
         >
           HOMES BY FATTORI
         </a>
 
-        {/* Desktop links */}
-        <ul className="hidden items-center gap-8 lg:flex">
+        {/* Desktop links — only shown at xl+, where there is genuinely room */}
+        <ul className="hidden items-center gap-6 xl:flex">
           {links.map((link) => (
             <li key={link.href}>
               <a
                 href={link.href}
                 aria-current={active === link.href ? "true" : undefined}
-                className={`font-inter text-[13px] uppercase tracking-[0.12em] transition-colors duration-300 hover:text-gold ${
+                className={`whitespace-nowrap font-inter text-[13px] uppercase tracking-[0.1em] transition-colors duration-300 hover:text-gold ${
                   active === link.href
                     ? "text-gold"
                     : solid
@@ -105,18 +105,21 @@ export default function Navbar() {
           ))}
         </ul>
 
-        <a href="#order" className="btn-gold hidden lg:inline-flex !px-6 !py-3">
-          Commission Your Portrait
+        <a
+          href="#order"
+          className="btn-gold hidden shrink-0 whitespace-nowrap !px-5 !py-2.5 !text-[12px] xl:inline-flex"
+        >
+          Commission
         </a>
 
-        {/* Mobile hamburger */}
+        {/* Hamburger — everything below xl uses the full-screen menu */}
         <button
           type="button"
           aria-label={open ? "Close menu" : "Open menu"}
           aria-expanded={open}
           aria-controls="mobile-menu"
           onClick={() => setOpen((v) => !v)}
-          className="relative z-50 flex h-10 w-10 flex-col items-center justify-center gap-[5px] lg:hidden"
+          className="relative z-50 flex h-10 w-10 flex-col items-center justify-center gap-[5px] xl:hidden"
         >
           <span
             className={`h-px w-6 ${solid ? "bg-navy" : "bg-cream"} transition-all duration-300 ${

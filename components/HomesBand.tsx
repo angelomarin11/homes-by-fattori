@@ -16,7 +16,7 @@ export default function HomesBand() {
         alt="A luxury home surrounded by manicured gardens"
         fill
         sizes="100vw"
-        className="object-cover"
+        className="ken-burns object-cover"
       />
       {/* darkening + vignette so the type reads while the home stays visible */}
       <div className="absolute inset-0 bg-navy/45" />

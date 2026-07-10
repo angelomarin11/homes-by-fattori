@@ -104,6 +104,49 @@ body {
   }
 }
 
+/* Slow, continuous "Ken Burns" drift so full-bleed photography feels alive
+   rather than static — the signature of high-end architectural sites. */
+@keyframes ken-burns {
+  0% {
+    transform: scale(1.05) translate(0, 0);
+  }
+  50% {
+    transform: scale(1.14) translate(-1.8%, -1.2%);
+  }
+  100% {
+    transform: scale(1.05) translate(0, 0);
+  }
+}
+
+.ken-burns {
+  animation: ken-burns 26s ease-in-out infinite;
+  transform-origin: center;
+  will-change: transform;
+}
+
+/* Framed images that zoom gently when hovered. */
+.zoom-wrap {
+  overflow: hidden;
+}
+.zoom-wrap img {
+  transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+.zoom-wrap:hover img {
+  transform: scale(1.06);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ken-burns {
+    animation: none;
+  }
+  .zoom-wrap img,
+  .zoom-wrap:hover img {
+    transition: none;
+    transform: none;
+  }
+}
+
 /* Legal / policy page prose */
 .legal-prose h2 {
   @apply mb-3 mt-10 font-playfair text-2xl text-navy;

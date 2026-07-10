@@ -11,7 +11,7 @@ export default function About() {
         <Reveal className="order-2 lg:order-1">
           <Parallax offset={28} className="relative mx-auto max-w-md">
             <div className="absolute -bottom-4 -left-4 -z-10 h-full w-full border border-gold/40" />
-            <div className="relative aspect-[4/5] w-full overflow-hidden bg-navy">
+            <div className="zoom-wrap group relative aspect-[4/5] w-full overflow-hidden bg-navy">
               <Image
                 src="/images/craft-ink.jpg"
                 alt="A fountain pen nib resting on paper"

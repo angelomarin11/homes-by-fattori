@@ -60,7 +60,7 @@ export default function StudioFilm() {
                   alt="An architect drawing a home by hand in pencil and ink"
                   fill
                   sizes="(max-width: 1024px) 100vw, 900px"
-                  className="object-cover"
+                  className="ken-burns object-cover"
                 />
               </div>
             )}
