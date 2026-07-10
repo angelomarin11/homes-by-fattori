@@ -2,6 +2,7 @@ import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import TrustBar from "@/components/TrustBar";
 import About from "@/components/About";
+import HomeReveal from "@/components/HomeReveal";
 import Portfolio from "@/components/Portfolio";
 import HowItWorks from "@/components/HowItWorks";
 import StudioFilm from "@/components/StudioFilm";
@@ -21,6 +22,7 @@ export default function Home() {
         <Hero />
         <TrustBar />
         <About />
+        <HomeReveal />
         <Portfolio />
         <HowItWorks />
         <StudioFilm />

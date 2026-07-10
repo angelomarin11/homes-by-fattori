@@ -169,6 +169,40 @@ body {
   }
 }
 
+/* Photograph → hand-drawn transformation: the ink-filtered copy fades in and
+   out over the photo, so the home appears to "become a drawing". */
+@keyframes photo-to-sketch {
+  0%,
+  12% {
+    opacity: 0;
+  }
+  44%,
+  62% {
+    opacity: 1;
+  }
+  92%,
+  100% {
+    opacity: 0;
+  }
+}
+.reveal-sketch {
+  animation: photo-to-sketch 9s ease-in-out infinite;
+}
+.reveal-badge {
+  animation: photo-to-sketch 9s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal-sketch {
+    animation: none;
+    opacity: 1;
+  }
+  .reveal-badge {
+    animation: none;
+    opacity: 1;
+  }
+}
+
 /* Legal / policy page prose */
 .legal-prose h2 {
   @apply mb-3 mt-10 font-playfair text-2xl text-navy;
