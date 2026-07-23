@@ -10,7 +10,7 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from "react"
 
 import {
   GRID, BASE, WIN_PCT, ETERNAL_PRICE, FLAIRS, CRY_MAX,
-  CRY_TIER2_MIN, CRY_TIER3_MIN, feedTier,
+  CRY_TIER3_MIN, feedTier, MIN_BUY, AMOUNT_PRESETS,
   normalizeCrewTag, nextGoal, skinOf, curSymbol,
 } from "./rules";
 import { DICT, MONEY, LangCtx, useT, detectLang, bold } from "./i18n";
@@ -20,18 +20,18 @@ import Tv from "./Tv";
 import { getBrowserDb } from "@/lib/supabase-browser";
 import { MOCK_DUEL, mockBlocks, MOCK_RANKING, MOCK_CREWS, MOCK_FEED } from "./mock";
 
-export default function LiveDuel({ duelId, demo = false }) {
+export default function LiveDuel({ duelId, demo = false, initialSide = null }) {
   const [lang, setLang] = useState("pt");
   useEffect(() => { setLang(detectLang()); }, []);
   const t = DICT[lang]; const money = MONEY[lang];
   return (
     <LangCtx.Provider value={{ t, lang, setLang, money }}>
-      <LiveInner duelId={duelId} demo={demo} />
+      <LiveInner duelId={duelId} demo={demo} initialSide={initialSide} />
     </LangCtx.Provider>
   );
 }
 
-function LiveInner({ duelId, demo }) {
+function LiveInner({ duelId, demo, initialSide }) {
   const { t } = useT();
   const db = useMemo(() => (demo ? null : getBrowserDb()), [demo]);
 
@@ -41,8 +41,8 @@ function LiveInner({ duelId, demo }) {
   const [ranking, setRanking] = useState([]);
   const [crews, setCrews] = useState([]);
   const [feed, setFeed] = useState([]);
-  // jogador (persistido no navegador)
-  const [side, setSide] = useState("a");
+  // jogador (persistido no navegador) — lado pode vir pré-marcado do link (?lado=a)
+  const [side, setSide] = useState(initialSide === "b" ? "b" : "a");
   const [budget, setBudget] = useState(10);
   const [name, setName] = useState("");
   const [flair, setFlair] = useState(FLAIRS[0]);
@@ -282,7 +282,12 @@ function LiveInner({ duelId, demo }) {
         <div style={S.brand}>DUALITY</div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <button onClick={() => setTv(true)} style={S.tvTop} title={t.tv_tip}>⏺ {t.tv_btn}</button>
-          <button onClick={async () => { const txt = t.live_share(isA ? cfg.a : cfg.b, sideDom, cfg.title); try { if (navigator.share) await navigator.share({ title: cfg.title, text: txt, url: location.href }); else { await navigator.clipboard.writeText(`${txt} ${location.href}`); show(t.copied); } } catch {} }} style={S.shareTop}>{t.share}</button>
+          <button onClick={async () => {
+            // convocação, não convite neutro: o link sai com o SEU lado pré-marcado
+            const url = `${location.origin}/d/${duelId}?lado=${side}`;
+            const txt = `${t.live_share(isA ? cfg.a : cfg.b, sideDom, cfg.title)} ${t.join_side(isA ? cfg.a : cfg.b)}`;
+            try { if (navigator.share) await navigator.share({ title: cfg.title, text: txt, url }); else { await navigator.clipboard.writeText(`${txt} ${url}`); show(t.copied); } } catch {}
+          }} style={S.shareTop}>{t.share}</button>
         </div>
       </header>
       {demo && <div style={{ ...S.demoBadge, position: "relative" }}>{t.demo}</div>}
@@ -387,11 +392,22 @@ function LiveInner({ duelId, demo }) {
             )}
             <div style={{ ...S.crewHint, marginBottom: 14 }}>{t.crew_hint}</div>
 
-            <div style={S.qtyRow}><span style={S.qtyNum}>{cur}{budget}<span style={S.qtyUnit}>{t.budget}</span></span><span style={S.qtyPrice}>{plan.count} {t.blocks}</span></div>
-            <input type="range" min={2} max={100} step={2} value={budget} onChange={e => setBudget(+e.target.value)} style={{ ...S.range, accentColor: accent }} />
-            {sideDom >= winPct && <div style={S.epic}>⚡ {t.win_banner_zone}</div>}
-            {sideDom < winPct && priceFactor < 1 && <div style={S.handicapNote}>⬇ {t.discount(Math.round((1 - priceFactor) * 100))}</div>}
-            <div style={S.planNote}>{t.plan_note(plan.count, isA ? cfg.b : cfg.a, plan.spent.toFixed(2), cur)}</div>
+            {/* FICHAS DE VALOR (v3) — ancoragem; a contabilidade fica no servidor */}
+            <div style={S.label}>{t.push_label}</div>
+            <div style={S.amtRow}>
+              {AMOUNT_PRESETS.map(v => (
+                <button key={v} className="amtChip" onClick={() => setBudget(v)}
+                  style={{ ...S.amtChip, ...(budget === v ? { ...S.amtChipOn, borderColor: accent } : {}) }}>{cur}{v}</button>
+              ))}
+              <input type="number" min={MIN_BUY} max={100000} placeholder={t.other_amt}
+                value={AMOUNT_PRESETS.includes(budget) ? "" : budget || ""}
+                onChange={e => setBudget(Math.max(0, +e.target.value || 0))} style={S.amtCustom} />
+            </div>
+            <div style={S.amtMeta}>
+              <span>{budget >= MIN_BUY ? t.approx_blocks(plan.count) : t.min_note(cur, MIN_BUY)}</span>
+              {sideDom < winPct && priceFactor < 1 && <span style={{ color: "#5ad07a" }}>⬇ -{Math.round((1 - priceFactor) * 100)}%</span>}
+            </div>
+            {sideDom >= winPct && <div style={{ ...S.epic, marginBottom: 8 }}>⚡ {t.win_banner_zone}</div>}
 
             {/* grito vai JUNTO da jogada (é gravado na transação) */}
             <div style={{ ...S.cryBox, marginTop: 12 }}>
@@ -413,7 +429,7 @@ function LiveInner({ duelId, demo }) {
             </div>
           </div>
           <div style={S.sticky}>
-            <button onClick={() => startBuy("blocks")} className="payPulse" disabled={plan.count === 0} style={{ ...S.pay, background: accent, color: pickText(accent), boxShadow: `0 12px 38px -12px ${accent}`, opacity: plan.count === 0 ? 0.5 : 1 }}>
+            <button onClick={() => startBuy("blocks")} className="payPulse" disabled={plan.count === 0 || budget < MIN_BUY} style={{ ...S.pay, background: accent, color: pickText(accent), boxShadow: `0 12px 38px -12px ${accent}`, opacity: (plan.count === 0 || budget < MIN_BUY) ? 0.5 : 1 }}>
               <span>{t.move_by} {isA ? cfg.a : cfg.b}</span><span style={S.payAmt}>{cur}{plan.spent.toFixed(2)}</span>
             </button>
           </div>

@@ -53,6 +53,12 @@ export const CSS = `
 @keyframes glint{0%{transform:translateX(-100%)}60%,100%{transform:translateX(100%)}}
 input,button,textarea{font-family:inherit}input::placeholder,textarea::placeholder{color:#55525f}
 button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid #fff8;outline-offset:2px}
+.amtChip{transition:transform .12s ease, border-color .12s ease}
+.amtChip:active{transform:scale(.94)}
+details.howBox summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between}
+details.howBox summary::-webkit-details-marker{display:none}
+details.howBox summary::after{content:'+';font-family:'Space Mono',monospace;color:#8A8792;font-size:15px}
+details.howBox[open] summary::after{content:'–'}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 `;
 
@@ -207,6 +213,12 @@ export const S = {
   qtyUnit: { fontSize: 12, color: DIM, marginLeft: 6, fontFamily: FC },
   qtyPrice: { fontFamily: FM, fontSize: 16, color: INK },
   range: { width: "100%", marginBottom: 4 },
+  // fichas de valor (v3): ancoragem no lugar do slider
+  amtRow: { display: "flex", gap: 7, marginBottom: 8 },
+  amtChip: { flex: 1, padding: "13px 4px", borderRadius: 12, border: `1.5px solid ${LINE}`, background: "#0e0c14", color: DIM, fontFamily: FM, fontWeight: 700, fontSize: 15, cursor: "pointer", textAlign: "center" },
+  amtChipOn: { color: "#fff", background: "#1a1722" },
+  amtCustom: { width: 74, padding: "13px 8px", borderRadius: 12, border: `1.5px solid ${LINE}`, background: "#0e0c14", color: INK, fontFamily: FM, fontWeight: 700, fontSize: 14, textAlign: "center", outline: "none" },
+  amtMeta: { display: "flex", justifyContent: "space-between", alignItems: "baseline", fontFamily: FM, fontSize: 12, color: DIM, marginBottom: 4, minHeight: 18 },
   epic: { fontFamily: FC, fontSize: 12, color: "#ffb84a", background: "#1e1605", border: "1px solid #3a2a08", borderRadius: 8, padding: "8px 10px", marginTop: 8 },
   handicapNote: { fontFamily: FC, fontSize: 12, color: "#5ad07a", background: "#06160c", border: "1px solid #0e3a1e", borderRadius: 8, padding: "8px 10px", marginTop: 8 },
   planNote: { fontFamily: FM, fontSize: 11, color: DIM, marginTop: 8, lineHeight: 1.4 },

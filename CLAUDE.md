@@ -25,7 +25,11 @@ Duality é um produto social viral inspirado na Million Dollar Homepage, mas int
 - **Emblema do jogador** nos blocos tomados + **skins de arena**, **gritos prontos**,
   **mensagem de vitória** e **simulador de ganhos** no estúdio do criador.
 - **Combo e meta coletiva:** momentum visual; não alteram preço nem regra.
-- Primeira jogada: promo fixa de **até 5 blocos por R$1** (corrigido — antes R$1 não comprava nada).
+- **v3 (CONCEITO.md):** rota crítica abre na home (trailer opcional), fichas fixas
+  de valor (5·10·25·50, piso 5 — promo R$1 CORTADA: caso especial sem identidade),
+  contabilidade de blocos invisível ("≈ N blocos"), link com lado pré-marcado
+  (?lado=a), OG unfurl em /d/[id], duração por disputa (Relâmpago 1h · Clássica 24h)
+  e painel /admin (criador, disputa, arrecadação, moderação de grito/nome).
 
 ## Decisões de produto importantes
 
@@ -83,11 +87,9 @@ Prioridades:
 2. **Painel de moderação** (remover nomes/gritos/disputas abusivas) — obrigatório antes de
    abrir ao público. Grito é conteúdo público pago: precisa de filtro de palavras + remoção.
 3. **QR real no modo TV** (hoje é placeholder visual) — gerar QR do link `/d/[id]`.
-4. **Promo de primeira jogada no servidor**: a promo "até 5 blocos por R$1" existe só na
-   demo; `/api/charge` não tem noção de "primeira compra" (exigiria identidade). Decidir se
-   vale criar `kind: "first"` com limite por dispositivo/IP ou aceitar sem promo no real.
+4. **Filtro automático de palavras nos gritos** (a remoção manual já existe no /admin).
 5. **Ligar o estúdio (`/`) ao `/api/duels`** quando houver criadores aprovados (hoje o
-   estúdio demonstra e o `/api/duels` já aceita skin/cries/victoryMsg).
+   estúdio demonstra; criar disputa real já é 1 clique no /admin).
 
 ## O que NÃO é código (Angelo precisa providenciar pra publicar)
 
