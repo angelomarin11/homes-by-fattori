@@ -16,7 +16,7 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 
 import {
   GRID, BASE, WIN_PCT, HOLD_HOURS, ETERNAL_PRICE, ETERNAL_CAP, SPLIT,
-  CRY_MAX, cryTier, COMBO_WINDOW_MS,
+  CRY_MAX, cryTier, COMBO_WINDOW_MS, MIN_BUY, AMOUNT_PRESETS,
   FLAIRS, normalizeCrewTag, nextGoal, skinOf, SKINS,
 } from "./duality/rules";
 import { DICT, MONEY, LangCtx, useT, detectLang, bold } from "./duality/i18n";
@@ -37,7 +37,8 @@ const DEFAULT = {
 export default function Duality() {
   const [lang, setLang] = useState("pt");
   useEffect(() => { setLang(detectLang()); }, []);
-  const [screen, setScreen] = useState("trailer");
+  // v3: a rota crítica abre NO produto — home primeiro; trailer é opcional
+  const [screen, setScreen] = useState("home");
   const [cfg, setCfg] = useState(DEFAULT);
   const t = DICT[lang]; const money = MONEY[lang];
   return (
@@ -319,7 +320,6 @@ function Play({ cfg, onBack }) {
   const [holdSide, setHoldSide] = useState(null);
   const [holdDeadline, setHoldDeadline] = useState(0);
   const [holdLeft, setHoldLeft] = useState(0);
-  const [firstDone, setFirstDone] = useState(false);
   const [freeTries, setFreeTries] = useState(1);
   // v2
   const [cry, setCry] = useState("");
@@ -354,15 +354,10 @@ function Play({ cfg, onBack }) {
     const opp = side === "a" ? "b" : "a"; const targets = [];
     for (let p = 0; p < total; p++) { if (cells[p].eternal) continue; if (cells[p].side === opp) { const cost = +(cells[p].price * priceFactor).toFixed(2); targets.push({ p, cost }); } }
     targets.sort((x, y) => x.cost - y.cost || (Math.abs((x.p % GRID) - GRID / 2) - Math.abs((y.p % GRID) - GRID / 2)));
-    // degrau de entrada: a PRIMEIRA jogada é promo fixa — até 5 blocos por 1
-    if (!firstDone) {
-      const list = targets.slice(0, 5);
-      return { list, spent: list.length ? 1 : 0, count: list.length };
-    }
     let spent = 0; const list = [];
     for (const tt of targets) { if (spent + tt.cost > budget + 1e-9) continue; spent += tt.cost; list.push(tt); }
     return { list, spent: +spent.toFixed(2), count: list.length };
-  }, [cells, side, budget, priceFactor, winner, firstDone, total]);
+  }, [cells, side, budget, priceFactor, winner, total]);
 
   function bumpCombo() {
     setCombo(c => c + 1);
@@ -414,7 +409,7 @@ function Play({ cfg, onBack }) {
     setTimeout(() => {
       const fn = (name.trim() || "Anon").slice(0, 16);
       const cryTxt = cry.trim().slice(0, CRY_MAX) || null;
-      const spent = mode === "eternal" ? ETERNAL_PRICE : (firstDone ? plan.spent : 1);
+      const spent = mode === "eternal" ? ETERNAL_PRICE : plan.spent;
       const tier = mode === "eternal" ? 3 : cryTier(spent);
       if (mode === "eternal") {
         setCells(prev => { const next = { ...prev }; let best = -1, bs = Infinity; for (let p = 0; p < total; p++) { if (next[p].eternal) continue; const d = Math.abs((p % GRID) - GRID / 2) + Math.abs(((p / GRID) | 0) - GRID / 2); if (d < bs) { bs = d; best = p; } } if (best >= 0) { next[best] = { side, name: fn, eternal: true, price: Infinity, flair }; setEternals(e => [...e, fn]); setJustWon([best]); setTimeout(() => setJustWon([]), 1400); } return next; });
@@ -424,7 +419,6 @@ function Play({ cfg, onBack }) {
       } else {
         applyBuy(plan.list, fn, myCrew);
         setFeed(f => [{ name: fn, qty: plan.count, side, ts: Date.now(), me: true, cry: cryTxt, tier, crew: myCrew }, ...f].slice(0, 8));
-        setFirstDone(true);
       }
       bumpCombo();
       if (tier === 3) { setHype({ name: fn, crew: myCrew, cry: cryTxt, amount: spent, side, eternal: mode === "eternal" }); setTimeout(() => setHype(null), 3400); }
@@ -443,8 +437,7 @@ function Play({ cfg, onBack }) {
   const eternalLeft = ETERNAL_CAP - eternals.length;
   const ranking = useMemo(() => Object.entries(scores).sort((a, b) => b[1] - a[1]).slice(0, 5), [scores]);
   const crewRanking = useMemo(() => Object.values(crews).sort((a, b) => b.points - a.points).slice(0, 5), [crews]);
-  const firstMove = !firstDone;
-  const payValue = mode === "eternal" ? ETERNAL_PRICE.toFixed(2) : (firstMove ? "1.00" : plan.spent.toFixed(2));
+  const payValue = mode === "eternal" ? ETERNAL_PRICE.toFixed(2) : plan.spent.toFixed(2);
   const holdColor = holdSide === "a" ? cfg.colorA : cfg.colorB;
 
   if (tv) {
@@ -503,9 +496,10 @@ function Play({ cfg, onBack }) {
         <Board cells={cells} justWon={justWon} cfg={cfg} imgA={imgA} imgB={imgB} tick={tick} dimmed={!!winner} />
       </div>
 
-      <div style={{ ...S.diagram, position: "relative" }}>
-        <div style={S.diagTitle}>{t.how}</div>
-        <div style={S.diagSteps}>
+      {/* v3: regras viram consulta, não leitura obrigatória — a arena fala por si */}
+      <details className="howBox" style={{ ...S.diagram, position: "relative" }}>
+        <summary style={S.diagTitle}>{t.how}</summary>
+        <div style={{ ...S.diagSteps, marginTop: 12 }}>
           {[t.step1, t.step2, t.step3, t.step4, t.step5, t.step6].map((s, i) => (
             <div key={i} style={S.diagStep}><span style={{ ...S.diagIcon, color: ["#EDE9E0", "#EDE9E0", "#ffb84a", "#5ad07a", "#EDE9E0", "#fff"][i] }}>{["◧", "⇄", "⚡", "⬇", "♛", "★"][i]}</span><span style={S.diagText}>{bold(s)}</span></div>
           ))}
@@ -514,7 +508,7 @@ function Play({ cfg, onBack }) {
           <div style={{ display: "flex", borderRadius: 99, overflow: "hidden" }}><div style={{ height: 8, width: "80%", background: "#2a2730" }} /><div style={{ height: 8, width: "20%", background: "#ffb84a" }} /></div>
           <div style={S.diagRulerLabel}><span>{t.normal_zone}</span><span style={{ color: "#ffb84a" }}>{t.win_zone}</span></div>
         </div>
-      </div>
+      </details>
 
       {/* RANKING DE EQUIPES */}
       {crewRanking.length > 0 && (
@@ -582,17 +576,38 @@ function Play({ cfg, onBack }) {
             <div style={{ ...S.crewHint, marginBottom: 14 }}>{t.crew_hint}</div>
 
             {freeTries > 0 && <button onClick={freeTry} style={{ ...S.tryBtn, borderColor: accent, color: accent }}>{t.try_free}</button>}
-            {firstMove ? (
-              <div style={S.firstMove}><div style={S.firstMoveTag}>{t.first_move}</div><div style={S.firstMoveRow}><span style={S.firstMoveText}>{t.first_move_text}</span><span style={S.firstMovePrice}>{cur}1</span></div></div>
-            ) : (
-              <>
-                <div style={S.qtyRow}><span style={S.qtyNum}>{cur}{budget}<span style={S.qtyUnit}>{t.budget}</span></span><span style={S.qtyPrice}>{plan.count} {t.blocks}</span></div>
-                <input type="range" min={2} max={100} step={2} value={budget} onChange={e => setBudget(+e.target.value)} style={{ ...S.range, accentColor: accent }} />
-                {inWinZone && <div style={S.epic}>⚡ {t.win_banner_zone}</div>}
-                {!inWinZone && priceFactor < 1 && <div style={S.handicapNote}>⬇ {t.discount(Math.round((1 - priceFactor) * 100))}</div>}
-                <div style={S.planNote}>{t.plan_note(plan.count, isA ? cfg.b : cfg.a, plan.spent.toFixed(2), cur)}</div>
-              </>
-            )}
+
+            {/* FICHAS DE VALOR (v3) — ancoragem, zero slider, matemática invisível */}
+            <div style={S.label}>{t.push_label}</div>
+            <div style={S.amtRow}>
+              {AMOUNT_PRESETS.map(v => (
+                <button key={v} className="amtChip" onClick={() => { setBudget(v); haptic(6); }}
+                  style={{ ...S.amtChip, ...(budget === v ? { ...S.amtChipOn, borderColor: accent } : {}) }}>{cur}{v}</button>
+              ))}
+              <input type="number" min={MIN_BUY} max={100000} placeholder={t.other_amt}
+                value={AMOUNT_PRESETS.includes(budget) ? "" : budget || ""}
+                onChange={e => setBudget(Math.max(0, +e.target.value || 0))} style={S.amtCustom} />
+            </div>
+            <div style={S.amtMeta}>
+              <span>{budget >= MIN_BUY ? t.approx_blocks(plan.count) : t.min_note(cur, MIN_BUY)}</span>
+              {!inWinZone && priceFactor < 1 && <span style={{ color: "#5ad07a" }}>⬇ -{Math.round((1 - priceFactor) * 100)}%</span>}
+            </div>
+            {inWinZone && <div style={{ ...S.epic, marginBottom: 10 }}>⚡ {t.win_banner_zone}</div>}
+
+            {/* grito vai junto da jogada */}
+            <div style={{ ...S.cryBox, marginTop: 10 }}>
+              <div style={S.cryLabel}>📣 {t.cry_label}</div>
+              <textarea value={cry} onChange={e => setCry(e.target.value)} placeholder={t.cry_ph} maxLength={CRY_MAX} rows={2} style={S.cryInput} />
+              {cfg.cries.filter(c => c.trim()).length > 0 && (
+                <div style={S.cryChips}>
+                  {cfg.cries.filter(c => c.trim()).map((c, i) => (
+                    <button key={i} onClick={() => setCry(c)} style={{ ...S.cryChip, ...(cry === c ? { borderColor: accent, color: "#fff" } : {}) }}>{c}</button>
+                  ))}
+                </div>
+              )}
+              <div style={S.cryTierNote}>{t.cry_tier2} · {t.cry_tier3}</div>
+            </div>
+
             <div style={{ ...S.eternal, borderColor: accent + "66" }}>
               <div style={S.eternalHead}><div><div style={S.eternalTitle}><span style={{ color: accent }}>★</span> {t.eternal_title}</div><div style={S.eternalSub}>{t.eternal_sub}</div></div><div style={S.eternalScarce}><div style={{ ...S.eternalLeft, color: eternalLeft <= 10 ? "#ff5a4c" : accent }}>{eternalLeft}</div><div style={S.eternalCap}>{t.eternal_of}</div></div></div>
               <div style={S.eternalPreview}><span style={{ ...S.eternalChip, background: accent, color: pickText(accent) }}>{flair} {(name.trim() || t.your_name.toLowerCase())}</span><span style={S.eternalIn}>{t.eternal_in} {isA ? cfg.a : cfg.b}</span></div>
@@ -600,8 +615,8 @@ function Play({ cfg, onBack }) {
             </div>
           </div>
           <div style={S.sticky}>
-            <button onClick={() => openBuy("normal")} className="payPulse" disabled={!firstMove && plan.count === 0} style={{ ...S.pay, background: accent, color: pickText(accent), boxShadow: `0 12px 38px -12px ${accent}`, opacity: (!firstMove && plan.count === 0) ? 0.5 : 1 }}>
-              <span>{firstMove ? t.start_by : t.move_by} {isA ? cfg.a : cfg.b}</span><span style={S.payAmt}>{cur}{payValue}</span>
+            <button onClick={() => openBuy("normal")} className="payPulse" disabled={plan.count === 0 || budget < MIN_BUY} style={{ ...S.pay, background: accent, color: pickText(accent), boxShadow: `0 12px 38px -12px ${accent}`, opacity: (plan.count === 0 || budget < MIN_BUY) ? 0.5 : 1 }}>
+              <span>{t.move_by} {isA ? cfg.a : cfg.b}</span><span style={S.payAmt}>{cur}{payValue}</span>
             </button>
             <button onClick={() => setShare(true)} style={S.payShare}>↗</button>
           </div>
@@ -648,20 +663,7 @@ function Play({ cfg, onBack }) {
                 <div style={S.grab} />
                 <div style={S.sheetTop}>{((isA && cfg.imgA) || (!isA && cfg.imgB)) && <img src={isA ? cfg.imgA : cfg.imgB} alt="" style={{ width: 40, height: 40, objectFit: "contain" }} />}<div><div style={{ fontFamily: "'Archivo Narrow'", fontWeight: 700, fontSize: 17, color: accent }}>{mode === "eternal" ? `★ ${isA ? cfg.a : cfg.b}` : isA ? cfg.a : cfg.b}</div><div style={S.sheetMeta}>{cur}{payValue} · {money.label}</div></div></div>
 
-                {/* GRITO DE GUERRA — a voz que vem junto com a jogada */}
-                <div style={S.cryBox}>
-                  <div style={S.cryLabel}>📣 {t.cry_label}</div>
-                  <textarea value={cry} onChange={e => setCry(e.target.value)} placeholder={t.cry_ph} maxLength={CRY_MAX} rows={2} style={S.cryInput} />
-                  {cfg.cries.filter(c => c.trim()).length > 0 && (
-                    <div style={S.cryChips}>
-                      {cfg.cries.filter(c => c.trim()).map((c, i) => (
-                        <button key={i} onClick={() => setCry(c)} style={{ ...S.cryChip, ...(cry === c ? { borderColor: accent, color: "#fff" } : {}) }}>{c}</button>
-                      ))}
-                    </div>
-                  )}
-                  <div style={S.cryTierNote}>{t.cry_tier2} · {t.cry_tier3}</div>
-                </div>
-
+                {cry.trim() && <p style={{ ...S.sheetP, textAlign: "center", fontStyle: "italic", marginBottom: 10 }}>📣 “{cry.trim().slice(0, CRY_MAX)}”</p>}
                 <div style={S.qr}><div style={S.qrInner} /></div>
                 <p style={{ ...S.sheetP, textAlign: "center", marginBottom: 12 }}>{money.method === "pix" ? t.pay_card : t.pay_card}</p>
                 {mode === "eternal" && <p style={S.term}>{bold(t.term)}</p>}

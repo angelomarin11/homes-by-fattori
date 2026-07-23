@@ -7,6 +7,7 @@
 
 import { getDb } from "@/lib/db";
 import { gatewayFor, computeSplit, createPixOrder, createStripeCheckout } from "@/lib/payments";
+import { MIN_BUY } from "@/components/duality/rules";
 
 export const dynamic = "force-dynamic";
 
@@ -17,13 +18,13 @@ export async function POST(req) {
     if (!["a", "b"].includes(side)) return bad("side inválido");
     if (!["blocks", "eternal"].includes(kind)) return bad("kind inválido");
 
-    // orçamento: número finito e positivo, com teto (NaN/negativo/gigante furam o
-    // limite de gasto — sem isso um NaN faz `spent > NaN` ser sempre falso e cobra
-    // o mapa inteiro). Só importa pra compra de blocos; Eterno tem preço fixo.
+    // orçamento: número finito, com PISO (taxa de gateway devora micro-pagamento;
+    // ver CONCEITO.md) e teto (NaN/negativo/gigante furam o limite de gasto — um
+    // NaN faz `spent > NaN` ser sempre falso e cobra o mapa inteiro).
     let budgetNum = 0;
     if (kind === "blocks") {
       budgetNum = Number(budget);
-      if (!Number.isFinite(budgetNum) || budgetNum < 1) return bad("orçamento inválido");
+      if (!Number.isFinite(budgetNum) || budgetNum < MIN_BUY) return bad(`valor mínimo: ${MIN_BUY}`);
       budgetNum = Math.min(budgetNum, 100000);
     }
 

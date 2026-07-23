@@ -7,10 +7,15 @@
 export const GRID = 24;
 export const BASE = 2;             // preço do bloco virgem na moeda do locale
 export const WIN_PCT = 80;
-export const HOLD_HOURS = 24;      // sustentar 80% por 24h reais pra vencer
+export const HOLD_HOURS = 24;      // Clássica: sustentar 80% por 24h (Relâmpago: 1h)
 export const ETERNAL_PRICE = 100;
 export const ETERNAL_CAP = 50;
 export const SPLIT = { creator: 70, platform: 30 };
+
+// COMPRA — piso e fichas fixas (ancoragem; ver CONCEITO.md).
+// Piso de 5 na moeda da disputa: abaixo disso a taxa do gateway devora o split.
+export const MIN_BUY = 5;
+export const AMOUNT_PRESETS = [5, 10, 25, 50];
 
 // GRITO DE GUERRA — camadas por gasto (estilo super-chat, mas o dinheiro
 // continua comprando BLOCOS; o grito é o palco que vem junto):

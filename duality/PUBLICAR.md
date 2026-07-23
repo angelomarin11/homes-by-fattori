@@ -57,21 +57,12 @@ Pra publicar com deploy, domínio e histórico próprios:
 4. Preencha na Vercel: `PAGARME_SECRET_KEY`, `PAGARME_PLATFORM_RECIPIENT_ID`,
    `PAGARME_WEBHOOK_SECRET`. Redeploy.
 
-### Semear criador + disputa (SQL Editor do Supabase)
-```sql
-insert into creators (name, email, country, pagarme_recipient_id, approved)
-values ('Criador Teste', 'voce@exemplo.com', 'BR', 're_XXXX', true);
-```
-Depois crie a disputa via API (semeia os 576 blocos). O header
-`x-admin-secret` precisa bater com `DUELS_ADMIN_SECRET`:
-```bash
-curl -X POST https://SEU-DEPLOY/api/duels \
-  -H 'Content-Type: application/json' -H "x-admin-secret: $DUELS_ADMIN_SECRET" -d '{
-  "creatorId": "<uuid do creator>", "title": "Jesus vs Diabo",
-  "sideA": "Jesus", "sideB": "Diabo", "colorA": "#F5C84B", "colorB": "#E03A2F",
-  "skin": "carvao", "cries": ["Pela Luz!", "Hoje tem virada"], "victoryMsg": "A fé moveu o mapa."
-}'
-```
+### Semear criador + disputa — pelo painel, sem SQL
+Abra **`https://SEU-DEPLOY/admin`**, entre com o `DUELS_ADMIN_SECRET` e:
+1. **+ Criador aprovado** (nome, email, recipient `re_…` do Pagar.me).
+2. **Nova disputa**: título, lados, cores, **⚡ Relâmpago 1h** (pra testar o ciclo
+   completo hoje) ou Clássica 24h, moeda. O painel semeia os 576 blocos e devolve o link.
+O painel também mostra a arrecadação por disputa e modera gritos/nomes com um clique.
 
 ### O teste de verdade
 1. Abra `/d/<id>` no celular.
