@@ -39,9 +39,10 @@ Pra publicar com deploy, domínio e histórico próprios:
    - `CRON_SECRET` (string aleatória longa)
    - `NEXT_PUBLIC_SITE_URL` (a URL do deploy — trava o retorno do checkout Stripe)
    - `DUELS_ADMIN_SECRET` (string aleatória — sem ela `/api/duels` recusa tudo)
-3. Deploy. O `vercel.json` já agenda o cron de vitória (1/min).
-   *Atenção:* cron de 1/min exige plano **Pro** (~US$20/mês); no Hobby o mínimo é
-   1/dia — pra fase de sandbox tá ok, a vitória só conclui com atraso.
+3. Deploy. O `vercel.json` vem com o cron de vitória em **1/dia** de propósito:
+   o plano Hobby (grátis) REJEITA cron mais frequente e o deploy falharia.
+   Quando assinar o Pro (~US$20/mês), troque o schedule pra `* * * * *` (1/min)
+   — em produção a vitória precisa concluir em tempo real.
 
 **Marco:** `https://SEU-DEPLOY/d/qualquercoisa` mostra "disputa não encontrada"
 (significa: app no ar falando com o banco).
