@@ -1,9 +1,18 @@
 /**
- * Cliente da API pública do Mercado Livre (site MLB).
+ * Cliente da API do Mercado Livre (site MLB).
  *
- * Estratégia de auth: tenta sem token; se receber 401/403, tenta obter um
- * token de aplicação (ML_ACCESS_TOKEN direto, ou client_credentials com
- * ML_CLIENT_ID/ML_CLIENT_SECRET) e repete com Authorization: Bearer.
+ * Duas rotas de coleta, tentadas nesta ordem:
+ *
+ * 1. Busca pública `/sites/MLB/search?seller_id=` — historicamente aberta,
+ *    mas desde 2024/2025 o ML vem bloqueando esse endpoint para a maioria
+ *    das aplicações (403 mesmo com token válido).
+ * 2. Catálogo do PRÓPRIO vendedor autenticado: `/users/me` →
+ *    `/users/{id}/items/search` (IDs) → `/items?ids=` (multiget). Exige
+ *    ML_ACCESS_TOKEN do vendedor (fluxo authorization_code da aplicação).
+ *    Como o cliente do relatório é o próprio seller, esta é a rota confiável.
+ *
+ * Auth: tenta sem token; em 401/403 usa ML_ACCESS_TOKEN ou client_credentials
+ * (ML_CLIENT_ID/ML_CLIENT_SECRET) e repete com Authorization: Bearer.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -63,28 +72,148 @@ async function mlGet(pathAndQuery) {
   }
 }
 
-/** Resolve nickname → dados do seller (via primeira página da busca). */
-export async function resolveSeller(nickname) {
-  const q = /^\d+$/.test(nickname)
-    ? `seller_id=${nickname}`
-    : `nickname=${encodeURIComponent(nickname)}`;
-  const data = await mlGet(`/sites/MLB/search?${q}&limit=1`);
-  const seller = data?.seller ?? data?.results?.[0]?.seller;
-  if (!seller?.id) {
-    throw new Error(
-      `Nenhum anúncio ativo encontrado para "${nickname}". Confira o nickname exato da loja (como aparece no perfil do ML).`
-    );
+/** Conta autenticada (exige token de seller). */
+async function fetchMe() {
+  const token = await getToken();
+  if (!token) return null;
+  bearerToken = token;
+  try {
+    const me = await fetchJson(`${API}/users/me`, { headers: { authorization: `Bearer ${token}` } });
+    return me?.id ? me : null;
+  } catch {
+    return null;
   }
-  return {
-    id: seller.id,
-    nickname: seller.nickname ?? nickname,
-    permalink: seller.permalink ?? null,
-    total: data?.paging?.total ?? null,
-  };
 }
 
-/** Pagina todos os itens ativos do seller. */
-export async function fetchAllItems(sellerId, { maxItems = Infinity, onPage } = {}) {
+/** Resolve nickname → dados do seller. "me" usa a conta do token. */
+export async function resolveSeller(nickname) {
+  if (nickname === 'me' || nickname === 'eu') {
+    const me = await fetchMe();
+    if (!me) {
+      throw new Error(
+        '--seller me exige um ML_ACCESS_TOKEN de vendedor no .env (autorize sua aplicação em developers.mercadolivre.com.br).'
+      );
+    }
+    return { id: me.id, nickname: me.nickname, permalink: me.permalink ?? null, total: null, own: true };
+  }
+  try {
+    const q = /^\d+$/.test(nickname)
+      ? `seller_id=${nickname}`
+      : `nickname=${encodeURIComponent(nickname)}`;
+    const data = await mlGet(`/sites/MLB/search?${q}&limit=1`);
+    const seller = data?.seller ?? data?.results?.[0]?.seller;
+    if (!seller?.id) {
+      throw new Error(
+        `Nenhum anúncio ativo encontrado para "${nickname}". Confira o nickname exato da loja (como aparece no perfil do ML).`
+      );
+    }
+    return {
+      id: seller.id,
+      nickname: seller.nickname ?? nickname,
+      permalink: seller.permalink ?? null,
+      total: data?.paging?.total ?? null,
+    };
+  } catch (err) {
+    // Busca pública bloqueada? Se o token for do próprio seller, seguimos.
+    const me = await fetchMe();
+    if (me && (String(me.id) === String(nickname) || me.nickname?.toLowerCase() === String(nickname).toLowerCase())) {
+      progress('Busca pública bloqueada — usando a conta autenticada do vendedor.');
+      return { id: me.id, nickname: me.nickname, permalink: me.permalink ?? null, total: null, own: true };
+    }
+    throw err;
+  }
+}
+
+/** IDs de todos os anúncios ativos do PRÓPRIO vendedor (rota autenticada). */
+async function fetchOwnItemIds(userId, { maxItems = Infinity } = {}) {
+  const ids = [];
+  // modo scan (scroll) atravessa catálogos > 1000 itens
+  let scroll = null;
+  for (let guard = 0; guard < 2000; guard++) {
+    const qs = new URLSearchParams({ search_type: 'scan', limit: '100', status: 'active' });
+    if (scroll) qs.set('scroll_id', scroll);
+    let data;
+    try {
+      data = await mlGet(`/users/${userId}/items/search?${qs}`);
+    } catch (err) {
+      if (ids.length) break;
+      // scan pode não estar habilitado — fallback offset simples
+      data = null;
+    }
+    if (!data) {
+      let offset = 0;
+      while (ids.length < maxItems) {
+        const page = await mlGet(`/users/${userId}/items/search?status=active&limit=100&offset=${offset}`);
+        const got = page?.results ?? [];
+        ids.push(...got);
+        offset += 100;
+        if (!got.length || offset >= (page?.paging?.total ?? 0)) break;
+        await sleep(120);
+      }
+      break;
+    }
+    const got = data?.results ?? [];
+    ids.push(...got);
+    scroll = data?.scroll_id ?? scroll;
+    if (!got.length || ids.length >= maxItems || !scroll) break;
+    await sleep(120);
+  }
+  return ids.slice(0, maxItems === Infinity ? undefined : maxItems);
+}
+
+/** Hidrata IDs em objetos de anúncio via multiget. */
+async function hydrateItems(ids, { onPage } = {}) {
+  const items = [];
+  for (const group of chunk(ids, 20)) {
+    const data = await mlGet(
+      `/items?ids=${group.join(',')}&attributes=id,title,category_id,price,sold_quantity,permalink,thumbnail,attributes,status`
+    );
+    for (const entry of data ?? []) {
+      const b = entry?.body;
+      if (entry?.code === 200 && b && (b.status === undefined || b.status === 'active')) {
+        items.push({
+          id: b.id,
+          title: b.title,
+          category_id: b.category_id,
+          price: b.price ?? null,
+          sold_quantity: b.sold_quantity ?? null,
+          permalink: b.permalink ?? null,
+          thumbnail: b.thumbnail ?? null,
+          attributes: b.attributes ?? [],
+        });
+      }
+    }
+    onPage?.(items.length, ids.length);
+    await sleep(120);
+  }
+  return items;
+}
+
+/** Pagina todos os itens ativos do seller (rota pública → rota autenticada). */
+export async function fetchAllItems(sellerId, { maxItems = Infinity, onPage, own = false } = {}) {
+  if (own) {
+    const ids = await fetchOwnItemIds(sellerId, { maxItems });
+    progress(`  ${ids.length} anúncios ativos na conta.`);
+    const items = await hydrateItems(ids, { onPage });
+    return { items, total: ids.length, truncated: false };
+  }
+  try {
+    return await fetchPublicItems(sellerId, { maxItems, onPage });
+  } catch (err) {
+    const me = await fetchMe();
+    if (me && String(me.id) === String(sellerId)) {
+      progress('Busca pública indisponível — coletando pelo catálogo autenticado do vendedor.');
+      return fetchAllItems(sellerId, { maxItems, onPage, own: true });
+    }
+    throw new Error(
+      `A busca pública do ML falhou (${String(err.message).slice(0, 140)}). ` +
+        'Hoje o ML restringe esse endpoint para a maioria das aplicações. Caminho garantido: rodar com o token do próprio vendedor ' +
+        '(ML_ACCESS_TOKEN no .env + --seller me).'
+    );
+  }
+}
+
+async function fetchPublicItems(sellerId, { maxItems = Infinity, onPage } = {}) {
   const items = [];
   let offset = 0;
   let total = null;

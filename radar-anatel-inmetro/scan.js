@@ -4,10 +4,11 @@
  *
  * Uso:
  *   node scan.js --seller "nickname_da_loja" --out relatorio.html
+ *   node scan.js --seller me                          (catálogo do próprio vendedor autenticado)
  *   node scan.js --mock --out relatorio-demo.html     (fixtures locais, sem rede)
  *
  * Flags:
- *   --seller <nick|id>   nickname ou seller_id do ML
+ *   --seller <nick|id|me>  nickname/seller_id do ML, ou "me" (exige ML_ACCESS_TOKEN)
  *   --out <arquivo>      caminho do HTML de saída (padrão: relatorio.html)
  *   --max-items <n>      limita a quantidade de itens analisados
  *   --no-llm             desliga a Camada B mesmo com ANTHROPIC_API_KEY
@@ -61,6 +62,7 @@ async function main() {
 
   const { items, truncated } = await ml.fetchAllItems(seller.id, {
     maxItems: args.maxItems,
+    own: seller.own === true,
     onPage: (n, total) => progress(`  coletados ${n}${total ? `/${Math.min(total, args.maxItems)}` : ''} anúncios…`),
   });
   if (!items.length) throw new Error('Nenhum anúncio ativo encontrado.');

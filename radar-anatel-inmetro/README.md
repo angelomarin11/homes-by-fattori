@@ -14,7 +14,10 @@ mensal em risco**.
 npm install
 cp .env.example .env          # preencha as chaves (ver abaixo)
 
-# Scan real
+# Scan real — catálogo do próprio vendedor autenticado (rota recomendada)
+node scan.js --seller me --out relatorio.html
+
+# Scan por nickname (depende da busca pública do ML, hoje restrita)
 node scan.js --seller "nickname_da_loja" --out relatorio.html
 
 # Demonstração offline (fixtures, sem rede) + teste de regressão
@@ -33,8 +36,9 @@ entregável final.
 | Variável | Obrigatória? | Para quê |
 |---|---|---|
 | `ANTHROPIC_API_KEY` | Não | Camada B: classifica itens ambíguos com `claude-haiku-4-5` (lotes de 20). Sem ela, ambíguos ficam 🟡. |
-| `ML_ACCESS_TOKEN` ou `ML_CLIENT_ID`+`ML_CLIENT_SECRET` | Só se a API pública bloquear | A API do ML vem exigindo OAuth em alguns endpoints. O scanner tenta sem auth e, se tomar 401/403, usa essas credenciais (client_credentials). Crie a aplicação em developers.mercadolivre.com.br. |
-| `ANATEL_CSV_URL` | Não | Sobrescreve a URL do CSV de produtos homologados (dados abertos ANATEL), caso o caminho padrão mude. |
+| `ML_ACCESS_TOKEN` | Recomendada | O ML restringiu a busca pública (`/sites/MLB/search`) para a maioria das aplicações desde 2024/2025 — 403 mesmo com token. A rota confiável é o token do **próprio vendedor** (aplicação autorizada pela conta da loja em developers.mercadolivre.com.br) + `--seller me`: usa `/users/me` → `/users/{id}/items/search` (modo scan, sem limite de 1000) → multiget. |
+| `ML_CLIENT_ID`+`ML_CLIENT_SECRET` | Não | Token de aplicação (client_credentials) — tentado como fallback na busca pública. |
+| `ANATEL_CSV_URL` | Não | Sobrescreve a fonte da base de homologação. Aceita URL http(s) **ou caminho local** de `.csv`/`.zip` (os portais gov.br bloqueiam clientes automatizados com frequência; baixar 1× no navegador e apontar aqui resolve). O dataset oficial é "Produtos de Telecomunicações Homologados pela Anatel" em dados.gov.br. |
 
 ## Arquitetura (1 tela)
 

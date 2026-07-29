@@ -70,6 +70,31 @@ export async function fetchJson(url, { headers = {}, retries = 3, method = 'GET'
   throw lastErr;
 }
 
+export async function fetchBuffer(url, { headers = {}, retries = 2 } = {}) {
+  let lastErr;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const res = await fetch(url, { headers });
+      if (res.ok) return Buffer.from(await res.arrayBuffer());
+      lastErr = new FetchError(`HTTP ${res.status} em ${url}`, res.status);
+      if (res.status >= 400 && res.status < 500 && res.status !== 429) throw lastErr;
+    } catch (err) {
+      if (err instanceof FetchError && err.status >= 400 && err.status < 500 && err.status !== 429) throw err;
+      lastErr = err;
+    }
+    if (attempt < retries) await sleep(1000 * 2 ** attempt);
+  }
+  throw lastErr;
+}
+
+/** Decodifica um buffer de texto: UTF-8, ou latin1 se houver muitos U+FFFD. */
+export function decodeSmart(buf) {
+  const utf8 = buf.toString('utf8');
+  const bad = (utf8.match(/�/g) ?? []).length;
+  if (bad > utf8.length / 1000) return buf.toString('latin1');
+  return utf8;
+}
+
 export async function fetchText(url, { headers = {}, retries = 2 } = {}) {
   let lastErr;
   for (let attempt = 0; attempt <= retries; attempt++) {
