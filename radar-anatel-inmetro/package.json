@@ -1,0 +1,18 @@
+{
+  "name": "radar-conformidade",
+  "version": "0.1.0",
+  "description": "Scanner de compliance ANATEL/INMETRO para catálogos do Mercado Livre (MVP)",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "scan": "node scan.js",
+    "test": "node test.js",
+    "demo": "node scan.js --mock --out cache/relatorio-mock.html"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.65.0"
+  }
+}

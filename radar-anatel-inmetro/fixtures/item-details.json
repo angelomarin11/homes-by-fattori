@@ -1,0 +1,19 @@
+{
+  "MLB0000000001": { "id": "MLB0000000001", "start_time": "2025-01-15T00:00:00.000Z", "price": 89.9, "sold_quantity": 1500, "attributes": [] },
+  "MLB0000000002": { "id": "MLB0000000002", "start_time": "2024-09-01T00:00:00.000Z", "price": 349.0, "sold_quantity": 420, "attributes": [{ "id": "ANATEL_HOMOLOGATION_NUMBER", "name": "Número de homologação Anatel", "value_name": "02123-20-04785" }] },
+  "MLB0000000003": { "id": "MLB0000000003", "start_time": "2025-03-10T00:00:00.000Z", "price": 59.9, "sold_quantity": 2300, "attributes": [] },
+  "MLB0000000004": { "id": "MLB0000000004", "start_time": "2025-02-01T00:00:00.000Z", "price": 129.9, "sold_quantity": 860, "attributes": [] },
+  "MLB0000000005": { "id": "MLB0000000005", "start_time": "2024-11-20T00:00:00.000Z", "price": 39.9, "sold_quantity": 3100, "attributes": [] },
+  "MLB0000000006": { "id": "MLB0000000006", "start_time": "2024-10-05T00:00:00.000Z", "price": 24.9, "sold_quantity": 5200, "attributes": [] },
+  "MLB0000000007": { "id": "MLB0000000007", "start_time": "2024-08-15T00:00:00.000Z", "price": 29.9, "sold_quantity": 900, "attributes": [] },
+  "MLB0000000008": { "id": "MLB0000000008", "start_time": "2025-06-01T00:00:00.000Z", "price": 589.0, "sold_quantity": 130, "attributes": [] },
+  "MLB0000000009": { "id": "MLB0000000009", "start_time": "2025-01-02T00:00:00.000Z", "price": 34.9, "sold_quantity": 1750, "attributes": [] },
+  "MLB0000000010": { "id": "MLB0000000010", "start_time": "2025-04-18T00:00:00.000Z", "price": 189.0, "sold_quantity": 240, "attributes": [] },
+  "MLB0000000011": { "id": "MLB0000000011", "start_time": "2024-07-30T00:00:00.000Z", "price": 19.9, "sold_quantity": 4100, "attributes": [] },
+  "MLB0000000012": { "id": "MLB0000000012", "start_time": "2025-02-25T00:00:00.000Z", "price": 149.9, "sold_quantity": 310, "attributes": [] },
+  "MLB0000000013": { "id": "MLB0000000013", "start_time": "2024-12-12T00:00:00.000Z", "price": 44.9, "sold_quantity": 980, "attributes": [{ "id": "ANATEL_HOMOLOGATION_NUMBER", "name": "Número de homologação Anatel", "value_name": "01890-21-01234" }] },
+  "MLB0000000014": { "id": "MLB0000000014", "start_time": "2025-05-08T00:00:00.000Z", "price": 79.9, "sold_quantity": 640, "attributes": [] },
+  "MLB0000000015": { "id": "MLB0000000015", "start_time": "2024-06-22T00:00:00.000Z", "price": 27.9, "sold_quantity": 1900, "attributes": [] },
+  "MLB0000000016": { "id": "MLB0000000016", "start_time": "2024-05-14T00:00:00.000Z", "price": 15.9, "sold_quantity": 2700, "attributes": [] },
+  "MLB0000000017": { "id": "MLB0000000017", "start_time": "2025-03-28T00:00:00.000Z", "price": 89.9, "sold_quantity": 530, "attributes": [] }
+}

@@ -1,0 +1,12 @@
+# Segredos — NUNCA commitar
+.env
+
+# Dependências
+node_modules/
+
+# Cache local de scans e da base ANATEL
+cache/
+
+# Relatórios gerados
+relatorio*.html
+*.pdf
