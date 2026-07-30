@@ -20,18 +20,18 @@ import Tv from "./Tv";
 import { getBrowserDb } from "@/lib/supabase-browser";
 import { MOCK_DUEL, mockBlocks, MOCK_RANKING, MOCK_CREWS, MOCK_FEED } from "./mock";
 
-export default function LiveDuel({ duelId, demo = false, initialSide = null }) {
+export default function LiveDuel({ duelId, demo = false, initialSide = null, initialTv = false, initialVertical = false }) {
   const [lang, setLang] = useState("pt");
   useEffect(() => { setLang(detectLang()); }, []);
   const t = DICT[lang]; const money = MONEY[lang];
   return (
     <LangCtx.Provider value={{ t, lang, setLang, money }}>
-      <LiveInner duelId={duelId} demo={demo} initialSide={initialSide} />
+      <LiveInner duelId={duelId} demo={demo} initialSide={initialSide} initialTv={initialTv} initialVertical={initialVertical} />
     </LangCtx.Provider>
   );
 }
 
-function LiveInner({ duelId, demo, initialSide }) {
+function LiveInner({ duelId, demo, initialSide, initialTv, initialVertical }) {
   const { t } = useT();
   const db = useMemo(() => (demo ? null : getBrowserDb()), [demo]);
 
@@ -52,7 +52,7 @@ function LiveInner({ duelId, demo, initialSide }) {
   // fluxos
   const [buy, setBuy] = useState(null);              // { phase: creating|qr|paid, kind, ...charge }
   const [toast, setToast] = useState(null);
-  const [tv, setTv] = useState(false);
+  const [tv, setTv] = useState(initialTv);   // ?tv=1 → OBS abre direto no modo TV
   const [hype, setHype] = useState(null);
   const [tick, setTick] = useState(0);
   const [holdLeft, setHoldLeft] = useState(0);
@@ -272,7 +272,7 @@ function LiveInner({ duelId, demo, initialSide }) {
   }));
 
   if (tv) {
-    return (<><style dangerouslySetInnerHTML={{ __html: FONTS + CSS }} /><Tv cfg={cfg} cells={cells} pctA={pctA} holdSide={holdSide} holdLeft={holdLeft} feed={feedItems} imgA={imgA} imgB={imgB} tick={tick} onExit={() => setTv(false)} /></>);
+    return (<><style dangerouslySetInnerHTML={{ __html: FONTS + CSS }} /><Tv cfg={cfg} cells={cells} pctA={pctA} holdSide={holdSide} holdLeft={holdLeft} feed={feedItems} imgA={imgA} imgB={imgB} tick={tick} onExit={() => setTv(false)} initialVertical={initialVertical} /></>);
   }
 
   return (
@@ -329,8 +329,15 @@ function LiveInner({ duelId, demo, initialSide }) {
         <Board cells={cells} justWon={[]} cfg={cfg} imgA={imgA} imgB={imgB} tick={tick} dimmed={!!winner} />
       </div>
 
-      <div style={{ ...S.byline ?? {}, position: "relative", textAlign: "center", fontFamily: FM, fontSize: 11, color: "#65626f", margin: "12px 0 14px" }}>
+      <div style={{ ...S.byline ?? {}, position: "relative", textAlign: "center", fontFamily: FM, fontSize: 11, color: "#65626f", margin: "12px 0 10px" }}>
         {cfg.creator && <>{t.by} <strong>{cfg.creator}</strong> · 70/30</>}
+      </div>
+      {/* vitrine do criador + loop de criadores: todo mundo vê o caminho de criar a sua */}
+      <div style={{ position: "relative", display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap", marginBottom: 14 }}>
+        {duel?.store_url && (
+          <a href={duel.store_url} target="_blank" rel="noopener noreferrer" style={{ ...S.cryChip, textDecoration: "none", color: "#c4c1cd" }}>🛍️ {t.store_link}</a>
+        )}
+        <a href="/" style={{ ...S.cryChip, textDecoration: "none", color: "#c4c1cd" }}>➕ {t.create_yours}</a>
       </div>
 
       {crews.length > 0 && (
@@ -444,6 +451,7 @@ function LiveInner({ duelId, demo, initialSide }) {
           <div style={S.winSub}>{t.sustained} · "{cfg.title}"</div>
           {cfg.victoryMsg && <div style={S.winMsg}>“{cfg.victoryMsg}”</div>}
           {ranking.length > 0 && <div style={S.winRank}><div style={S.rankTitle}>{t.podium}</div>{ranking.slice(0, 3).map((r, i) => (<div key={r.buyer_name} style={S.rankRow}><span style={S.rankPos}>{["①", "②", "③"][i]}</span><span style={S.rankName}>{r.buyer_name}</span><span style={S.rankVal}>{r.blocks}</span></div>))}</div>}
+          <a href="/" style={{ ...S.sheetCta, background: "transparent", border: `1px solid ${LINE}`, color: INK, display: "block", textAlign: "center", textDecoration: "none", marginTop: 12 }}>➕ {t.create_yours}</a>
         </div></div>
       )}
 

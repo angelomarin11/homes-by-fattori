@@ -3,17 +3,18 @@
 import { GRID, BASE } from "./rules";
 
 export const MOCK_DUEL = {
-  id: "demo", title: "Jesus vs Diabo",
-  side_a: "Jesus", side_b: "Diabo",
-  color_a: "#F5C84B", color_b: "#E03A2F",
+  id: "demo", title: "Gatos vs Cachorros",
+  side_a: "Gatos", side_b: "Cachorros",
+  color_a: "#7C5CFF", color_b: "#FF9F1C",
   img_a: null, img_b: null,
   grid: GRID, base_price: BASE, currency: "BRL",
   skin: "carvao",
-  cries: ["Pela Luz!", "Hoje tem virada", "Ninguém segura a gente"],
-  victory_msg: "A fé moveu o mapa.",
-  win_pct: 80, hold_hours: 24, eternal_cap: 50, eternal_price: 100,
+  cries: ["Miau! 🐱", "Au au! 🐶", "Hoje tem virada"],
+  victory_msg: "O sofá é nosso.",
+  win_pct: 80, hold_hours: 1, eternal_cap: 50, eternal_price: 100,
   status: "active", leading_side: null, hold_until: null, winner: null,
-  creators: { name: "Padre André" },
+  store_url: "https://exemplo.com/loja-do-criador",
+  creators: { name: "Duds Live" },
 };
 
 export function mockBlocks() {
@@ -37,11 +38,11 @@ export const MOCK_RANKING = [
   { buyer_name: "Lúcia", blocks: 19 }, { buyer_name: "Gabriel", blocks: 8 },
 ];
 export const MOCK_CREWS = [
-  { tag: "FIEL", side: "a", points: 61 }, { tag: "CAOS", side: "b", points: 44 },
+  { tag: "MIAU", side: "a", points: 61 }, { tag: "AUAU", side: "b", points: 44 },
 ];
 // mesma forma da view public_feed (block_count, sem positions/ledger)
 export const MOCK_FEED = [
-  { buyer_name: "Maria", side: "a", cry: "Pela Luz!", crew: "FIEL", gross: 52, kind: "blocks", block_count: 11, paid_at: "2026-01-01T12:03:00Z" },
-  { buyer_name: "Dante", side: "b", cry: "Hoje o mapa escurece", crew: "CAOS", gross: 18, kind: "blocks", block_count: 6, paid_at: "2026-01-01T12:01:00Z" },
+  { buyer_name: "Maria", side: "a", cry: "Miau! 🐱", crew: "MIAU", gross: 52, kind: "blocks", block_count: 11, paid_at: "2026-01-01T12:03:00Z" },
+  { buyer_name: "Dante", side: "b", cry: "Hoje o osso é nosso 🐶", crew: "AUAU", gross: 18, kind: "blocks", block_count: 6, paid_at: "2026-01-01T12:01:00Z" },
   { buyer_name: "Lúcia", side: "a", cry: null, crew: null, gross: 100, kind: "eternal", block_count: 0, paid_at: "2026-01-01T11:58:00Z" },
 ];

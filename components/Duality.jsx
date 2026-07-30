@@ -25,12 +25,14 @@ import Board from "./duality/Board";
 import Tv from "./duality/Tv";
 
 /* ---------------- App ---------------- */
+// Exemplo padrão: GATOS vs CACHORROS — universal, emocional, memeável e seguro
+// (sem religião, sem marca registrada, sem risco com gateway). Ver CONCEITO.md.
 const DEFAULT = {
-  title: "Jesus vs Diabo", a: "Jesus", b: "Diabo",
-  colorA: "#F5C84B", colorB: "#E03A2F", imgA: null, imgB: null,
-  creator: "Padre André",
+  title: "Gatos vs Cachorros", a: "Gatos", b: "Cachorros",
+  colorA: "#7C5CFF", colorB: "#FF9F1C", imgA: null, imgB: null,
+  creator: "Duds Live",
   skin: "carvao",
-  cries: ["Pela Luz!", "Hoje tem virada", "Ninguém segura a gente"],
+  cries: ["Miau! 🐱", "Au au! 🐶", "Hoje tem virada"],
   victoryMsg: "",
 };
 
@@ -52,7 +54,7 @@ export default function Duality() {
 }
 
 /* ---------------- TRAILER cinematográfico ---------------- */
-const T_GRID = 22, TA = "#F5C84B", TB = "#E03A2F";
+const T_GRID = 22, TA = "#7C5CFF", TB = "#FF9F1C";
 const T_NAMES_A = ["Maria", "João", "Ana", "Gabriel", "Sofia", "Rafael"];
 function Trailer({ onEnter }) {
   const { t } = useT();
@@ -105,17 +107,17 @@ function Trailer({ onEnter }) {
 
       {phase === "intro" && (
         <div style={S.introMatch}>
-          <div className="sideInL" style={{ ...S.introSide, color: TA }}><div style={S.introEmoji}>✦</div>JESUS</div>
+          <div className="sideInL" style={{ ...S.introSide, color: TA }}><div style={S.introEmoji}>🐱</div>GATOS</div>
           <div className="vsIn" style={S.introVs}>VS</div>
-          <div className="sideInR" style={{ ...S.introSide, color: TB }}><div style={S.introEmoji}>🔥</div>DIABO</div>
+          <div className="sideInR" style={{ ...S.introSide, color: TB }}><div style={S.introEmoji}>🐶</div>CACHORROS</div>
         </div>
       )}
 
       {(phase === "battle" || phase === "win") && (
         <div className="boardFade" style={{ position: "relative" }}>
           <div style={S.scoreRow}>
-            <div style={{ textAlign: "left" }}><div style={{ ...S.scoreName, color: TA }}>Jesus</div><div key={"a" + pctA} className="num" style={{ ...S.scorePct, color: TA }}>{pctA}%</div></div>
-            <div style={{ textAlign: "right" }}><div style={{ ...S.scoreName, color: TB }}>Diabo</div><div key={"b" + pctA} className="num" style={{ ...S.scorePct, color: TB }}>{100 - pctA}%</div></div>
+            <div style={{ textAlign: "left" }}><div style={{ ...S.scoreName, color: TA }}>Gatos</div><div key={"a" + pctA} className="num" style={{ ...S.scorePct, color: TA }}>{pctA}%</div></div>
+            <div style={{ textAlign: "right" }}><div style={{ ...S.scoreName, color: TB }}>Cachorros</div><div key={"b" + pctA} className="num" style={{ ...S.scorePct, color: TB }}>{100 - pctA}%</div></div>
           </div>
           <div style={S.quote}>
             <div style={{ width: `${pa}%`, background: TA, transition: "width .6s ease" }} />
@@ -137,7 +139,7 @@ function Trailer({ onEnter }) {
         <div className="winIn" style={S.tWinOverlay}>
           <div className="crown" style={{ ...S.tCrown, color: TA }}>♛</div>
           <div style={S.tWinLabel}>{t.winner}</div>
-          <div style={{ ...S.tWinName, color: TA }}>JESUS</div>
+          <div style={{ ...S.tWinName, color: TA }}>GATOS</div>
           <button onClick={onEnter} style={S.tEnterBtn}>{t.home_cta_play}</button>
         </div>
       )}
@@ -148,47 +150,74 @@ function Trailer({ onEnter }) {
 }
 
 /* ---------------- HOME (demo honesta, rotulada) ---------------- */
-function Home({ onCreate, onPlay, onReplay }) {
-  const { t } = useT();
-  const [pa, setPa] = useState(50);
-  const dir = useRef(1);
+// A batalha aparece EM MOVIMENTO nos primeiros segundos — mini-tabuleiro vivo,
+// rotulado como demonstração, sem bloquear o CTA.
+const MB_COLS = 16, MB_ROWS = 9;
+function MiniBattle() {
+  const [cells, setCells] = useState(() => Array.from({ length: MB_COLS * MB_ROWS }, (_, i) => (i % MB_COLS) < MB_COLS / 2 ? "a" : "b"));
+  const target = useRef(62);
   useEffect(() => {
     const iv = setInterval(() => {
-      setPa(p => {
-        let n = p + dir.current * (1 + Math.random() * 3);
-        if (n > 78) dir.current = -1; if (n < 22) dir.current = 1;
-        return Math.max(20, Math.min(80, n));
+      if (Math.random() < 0.18) target.current = 25 + Math.random() * 50;
+      setCells(prev => {
+        const next = [...prev];
+        const cA = next.filter(c => c === "a").length;
+        const pct = (cA / next.length) * 100;
+        const goA = pct < target.current;
+        const opp = goA ? "b" : "a", me = goA ? "a" : "b";
+        const cand = [...next.keys()].filter(i => next[i] === opp)
+          .sort((x, y) => Math.abs((x % MB_COLS) - MB_COLS / 2) - Math.abs((y % MB_COLS) - MB_COLS / 2));
+        cand.slice(0, 2 + (Math.random() * 3 | 0)).forEach(i => { next[i] = me; });
+        return next;
       });
-    }, 700);
+    }, 420);
     return () => clearInterval(iv);
   }, []);
+  const pctA = Math.round(cells.filter(c => c === "a").length / cells.length * 100);
+  return (
+    <>
+      <div style={S.homeDemoMkt}>
+        <span style={{ color: "#7C5CFF", fontFamily: FM, fontWeight: 700, fontSize: 24 }}>🐱 {pctA}%</span>
+        <span style={{ color: DIM, fontSize: 12, fontFamily: FM }}>Gatos × Cachorros</span>
+        <span style={{ color: "#FF9F1C", fontFamily: FM, fontWeight: 700, fontSize: 24 }}>{100 - pctA}% 🐶</span>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: `repeat(${MB_COLS},1fr)`, borderRadius: 10, overflow: "hidden", margin: "10px 0", aspectRatio: `${MB_COLS}/${MB_ROWS}` }}>
+        {cells.map((c, i) => <div key={i} style={{ background: c === "a" ? "#7C5CFF" : "#FF9F1C", transition: "background .35s" }} />)}
+      </div>
+      <div style={{ ...S.quote, margin: 0, height: 10 }}>
+        <div style={{ width: `${pctA}%`, background: "#7C5CFF", transition: "width .5s ease" }} />
+        <div style={{ width: `${100 - pctA}%`, background: "#FF9F1C", transition: "width .5s ease" }} />
+        <div style={{ ...S.cursor, left: `${pctA}%`, height: 16 }} />
+      </div>
+    </>
+  );
+}
+
+function Home({ onCreate, onPlay, onReplay }) {
+  const { t } = useT();
   return (
     <div style={S.root}><style dangerouslySetInnerHTML={{ __html: FONTS + CSS }} />
       <div style={{ ...S.wrap, paddingTop: 20 }}>
         <div style={S.topRow}><div style={S.brand}>DUALITY</div><LangPicker /></div>
-        <div style={S.homeHero}>
+        <div style={{ ...S.homeHero, margin: "18px 0 16px" }}>
           <h1 style={S.homeH1}>{t.home_h1}</h1>
           <p style={S.homeLead}>{t.home_lead}</p>
         </div>
         <div style={S.homeDemo}>
           <div style={S.homeDemoBadge}>{t.home_demo_badge}</div>
-          <div style={S.homeDemoMkt}>
-            <span style={{ color: "#F5C84B", fontFamily: FM, fontWeight: 700, fontSize: 26 }}>{Math.round(pa)}%</span>
-            <span style={{ color: DIM, fontSize: 13 }}>Jesus × Diabo</span>
-            <span style={{ color: "#E03A2F", fontFamily: FM, fontWeight: 700, fontSize: 26 }}>{100 - Math.round(pa)}%</span>
-          </div>
-          <div style={{ ...S.quote, margin: "10px 0 0" }}>
-            <div style={{ width: `${pa}%`, background: "#F5C84B", transition: "width .6s ease" }} />
-            <div style={{ width: `${100 - pa}%`, background: "#E03A2F", transition: "width .6s ease" }} />
-            <div style={{ ...S.cursor, left: `${pa}%` }} />
-          </div>
+          <MiniBattle />
         </div>
         <button style={S.homeCtaMain} onClick={onPlay}>{t.home_cta_play}</button>
-        <button style={S.homeCtaAlt} onClick={onCreate}>{t.home_cta_create}</button>
+        <button style={S.homeCtaAlt} onClick={onCreate}>➕ {t.home_cta_create}</button>
         <div style={S.homeFeatures}>
           {[t.home_f1, t.home_f4, t.home_f5, t.home_f2, t.home_f3].map((f, i) => (
             <div key={i} style={S.homeFeature}><span style={S.homeFeatureIcon}>{["⇄", "📣", "⚑", "♛", "★"][i]}</span>{f}</div>
           ))}
+        </div>
+        {/* PARA STREAMERS — OBS e TikTok Live */}
+        <div style={{ ...S.homeDemo, marginTop: 20, marginBottom: 0 }}>
+          <div style={{ ...S.homeDemoBadge, color: "#ff5a4c" }}>📺 {t.streamer_head}</div>
+          <p style={{ fontSize: 13.5, color: "#c4c1cd", lineHeight: 1.5, textAlign: "center" }}>{t.streamer_text}</p>
         </div>
         <button onClick={onReplay} style={S.replayLink}>↺ {t.replay}</button>
       </div>

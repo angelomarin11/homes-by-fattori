@@ -18,7 +18,7 @@ export async function POST(req) {
     if (!secret || req.headers.get("x-admin-secret") !== secret) {
       return Response.json({ error: "não autorizado" }, { status: 401 });
     }
-    const { creatorId, title, sideA, sideB, colorA, colorB, imgA, imgB, currency = "BRL", basePrice = 2, skin, cries, victoryMsg, holdHours } = await req.json();
+    const { creatorId, title, sideA, sideB, colorA, colorB, imgA, imgB, currency = "BRL", basePrice = 2, skin, cries, victoryMsg, holdHours, storeUrl } = await req.json();
 
     // só criadores aprovados publicam (curadoria fechada)
     const { data: creator } = await db.from("creators").select("approved").eq("id", creatorId).single();
@@ -30,13 +30,15 @@ export async function POST(req) {
     const cleanVictory = typeof victoryMsg === "string" ? victoryMsg.trim().slice(0, 90) || null : null;
     // duração da vitória sustentada: Relâmpago (1h, pra lives) até Clássica (24h+)
     const cleanHold = Math.min(72, Math.max(1, Math.round(Number(holdHours) || 24)));
+    // vitrine: só LINK https pra loja do criador — a plataforma não vende produto
+    const cleanStore = typeof storeUrl === "string" && /^https:\/\/.{4,200}$/.test(storeUrl.trim()) ? storeUrl.trim() : null;
 
     const grid = 24;
     const { data: duel } = await db.from("duels").insert({
       creator_id: creatorId, title, side_a: sideA, side_b: sideB,
       color_a: colorA, color_b: colorB, img_a: imgA || null, img_b: imgB || null,
       grid, base_price: basePrice, currency, hold_hours: cleanHold,
-      skin: cleanSkin, cries: cleanCries, victory_msg: cleanVictory,
+      skin: cleanSkin, cries: cleanCries, victory_msg: cleanVictory, store_url: cleanStore,
     }).select().single();
 
     // semeia os blocos: metade A, metade B, preço base
