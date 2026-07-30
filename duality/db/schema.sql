@@ -35,6 +35,8 @@ create table duels (
                 check (skin in ('carvao','neon','ouro')),
   cries         text[] not null default '{}',       -- gritos prontos da torcida (máx 3)
   victory_msg   text,                               -- mensagem exibida no monumento
+  store_url     text,                               -- vitrine: link da loja do criador (só link;
+                                                    -- a plataforma NÃO processa venda de produto)
   win_pct       int not null default 80,
   hold_hours    int not null default 24,
   eternal_cap   int not null default 50,

@@ -89,6 +89,29 @@ SQL Editor virou o painel do operador. Moderação de nome cravado ainda é manu
   língua) → ES. Nada de "lançar no mundo": lançar num CANAL (um criador por língua).
 - Disputas internacionais nascem em USD; piso 5 vale igual (US$5).
 
+## Decisões da rodada de feedback (v3.1)
+
+- **Exemplo padrão: Gatos vs Cachorros 🐱🐶.** "Jesus vs Diabo" era memorável mas
+  péssimo carro-chefe: risco com gateway, ofensa e imprensa ruim. Gatos vs Cachorros
+  é universal (funciona em qualquer língua), emocional, memeável e 100% seguro —
+  sem religião, sem marca registrada. Outros bons: Pizza vs Hambúrguer, Praia vs
+  Serra, Café vs Chá. Evitar marcas (PlayStation, clubes) sem licença.
+- **A batalha em movimento nos primeiros segundos.** A home abre com um
+  mini-tabuleiro LUTANDO (rotulado demonstração) — ninguém precisa imaginar o
+  produto, ele se mostra em 2s, sem bloquear o CTA.
+- **TikTok Live e lives verticais:** modo TV agora tem formato **9:16** além do
+  16:9, com QR gigante centralizado. E URL direta pro OBS/TikTok Live Studio:
+  `/d/{id}?tv=1` (16:9) ou `/d/{id}?tv=1&v=1` (vertical) — o streamer cola o
+  link como browser source e está transmitindo.
+- **Venda de produtos: SIM como vitrine, NÃO como checkout.** A disputa exibe
+  `🛍 loja do criador` (link pro e-commerce dele). A plataforma NÃO processa
+  venda de produto físico — isso traria logística, CDC pleno, estoque e chargeback
+  de outra natureza. O link já monetiza a audiência do criador (e nos torna mais
+  atraentes pra ele) sem mudar nosso modelo. Reavaliar checkout próprio só com
+  demanda comprovada.
+- **Loop de criadores em todo lugar:** a arena e o monumento de vitória agora têm
+  "➕ Criar a minha disputa" — quem assiste uma disputa é o próximo criador.
+
 ## Riscos que o conceito precisa respeitar (do turno anterior, continuam valendo)
 
 - **Arena vazia**: disputa nunca abre sem audiência + horário. Relâmpago existe pra isso.

@@ -11,15 +11,20 @@ import Board from "./Board";
 //  fixo: quem assiste escaneia e vira jogador. O streamer é o criador —
 //  cada pagamento que a live gera cai no split 70/30 dele.
 // ============================================================================
-export default function Tv({ cfg, cells, pctA, holdSide, holdLeft, feed, imgA, imgB, tick, onExit }) {
+export default function Tv({ cfg, cells, pctA, holdSide, holdLeft, feed, imgA, imgB, tick, onExit, initialVertical = false }) {
   const { t } = useT();
+  // 9:16 = TikTok Live / Shorts / Reels · 16:9 = Twitch / YouTube (OBS)
+  const [vertical, setVertical] = React.useState(initialVertical);
   const pctB = 100 - pctA;
-  const cries = feed.filter(f => f.cry).slice(0, 3);
+  const cries = feed.filter(f => f.cry).slice(0, vertical ? 2 : 3);
   const holdColor = holdSide === "a" ? cfg.colorA : cfg.colorB;
   return (
-    <div style={TV.root}>
+    <div style={{ ...TV.root, ...(vertical ? TV.rootV : {}) }}>
       <div style={{ ...S.aurora, background: skinOf(cfg.skin).aurora }} />
-      <button onClick={onExit} style={TV.exit}>✕ {t.tv_exit}</button>
+      <div style={TV.exitRow}>
+        <button onClick={() => setVertical(v => !v)} style={TV.fmt}>{vertical ? "▭ 16:9" : "▯ 9:16"}</button>
+        <button onClick={onExit} style={TV.exitBtn}>✕ {t.tv_exit}</button>
+      </div>
 
       <div style={TV.head}>
         <div style={TV.brand}>DUALITY</div>
@@ -57,7 +62,13 @@ export default function Tv({ cfg, cells, pctA, holdSide, holdLeft, feed, imgA, i
 
       <Board cells={cells} justWon={[]} cfg={cfg} imgA={imgA} imgB={imgB} tick={tick} dimmed={false} />
 
-      <div style={TV.foot}>
+      <div style={{ ...TV.foot, ...(vertical ? TV.footV : {}) }}>
+        {vertical && (
+          <div style={{ ...TV.qrBox, alignSelf: "center" }}>
+            <div style={{ ...TV.qr, width: 150, height: 150 }}><div style={S.qrInner} /></div>
+            <div style={{ ...TV.qrLabel, maxWidth: 180 }}>{t.tv_scan}</div>
+          </div>
+        )}
         <div style={TV.cries}>
           {cries.length === 0
             ? <div style={TV.criesEmpty}>{t.feed_empty}</div>
@@ -69,10 +80,12 @@ export default function Tv({ cfg, cells, pctA, holdSide, holdLeft, feed, imgA, i
               </div>
             ))}
         </div>
-        <div style={TV.qrBox}>
-          <div style={TV.qr}><div style={S.qrInner} /></div>
-          <div style={TV.qrLabel}>{t.tv_scan}</div>
-        </div>
+        {!vertical && (
+          <div style={TV.qrBox}>
+            <div style={TV.qr}><div style={S.qrInner} /></div>
+            <div style={TV.qrLabel}>{t.tv_scan}</div>
+          </div>
+        )}
       </div>
 
       <div style={TV.watermark}>{t.tv_watermark} · {cfg.creator}</div>
@@ -82,10 +95,14 @@ export default function Tv({ cfg, cells, pctA, holdSide, holdLeft, feed, imgA, i
 
 const TV = {
   root: { position: "fixed", inset: 0, zIndex: 85, background: "#08070c", color: INK, fontFamily: FC, padding: "22px clamp(16px, 5vw, 60px)", overflowY: "auto", display: "flex", flexDirection: "column", maxWidth: "100vw" },
-  exit: { position: "absolute", top: 16, right: 16, zIndex: 5, background: "none", border: `1px solid ${LINE}`, color: DIM, fontFamily: FM, fontSize: 11, padding: "6px 12px", borderRadius: 8, cursor: "pointer" },
+  // 9:16: coluna estreita centralizada — enquadra TikTok Live / Shorts / Reels
+  rootV: { padding: "18px 16px", alignItems: "stretch", maxWidth: 460, left: "50%", transform: "translateX(-50%)", right: "auto", width: "100%" },
+  exitRow: { position: "absolute", top: 14, right: 14, zIndex: 5, display: "flex", gap: 6 },
+  fmt: { background: "none", border: `1px solid ${LINE}`, color: "#5ad07a", fontFamily: FM, fontSize: 11, padding: "6px 10px", borderRadius: 8, cursor: "pointer", fontWeight: 700 },
+  exitBtn: { background: "none", border: `1px solid ${LINE}`, color: DIM, fontFamily: FM, fontSize: 11, padding: "6px 12px", borderRadius: 8, cursor: "pointer" },
   head: { position: "relative", display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 },
   brand: { fontFamily: FD, fontWeight: 900, fontStyle: "italic", fontSize: 22, letterSpacing: -.5 },
-  live: { display: "flex", alignItems: "center", gap: 7, fontFamily: FM, fontSize: 12, letterSpacing: 2, color: "#ff5a4c", marginRight: 110 },
+  live: { display: "flex", alignItems: "center", gap: 7, fontFamily: FM, fontSize: 12, letterSpacing: 2, color: "#ff5a4c", marginRight: 170 },
   liveDot: { width: 8, height: 8, borderRadius: 99, background: "#ff5a4c", display: "inline-block" },
   title: { position: "relative", fontFamily: FD, fontWeight: 800, fontSize: "clamp(18px, 3vw, 28px)", textAlign: "center", letterSpacing: -.5, marginBottom: 8 },
   ticker: { position: "relative", display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 8 },
@@ -94,6 +111,7 @@ const TV = {
   pctMini: { fontSize: "0.38em", opacity: .5, letterSpacing: 0 },
   vs: { fontFamily: FM, color: "#3a3744", fontSize: 24, alignSelf: "center" },
   foot: { position: "relative", display: "flex", gap: 16, alignItems: "stretch", marginTop: 16 },
+  footV: { flexDirection: "column", gap: 12, alignItems: "stretch" },
   cries: { flex: 1, display: "flex", flexDirection: "column", gap: 6, justifyContent: "flex-end", minWidth: 0 },
   criesEmpty: { fontFamily: FM, fontSize: 12, color: "#55525f" },
   cryItem: { display: "flex", alignItems: "baseline", flexWrap: "wrap", fontSize: 14, color: "#c4c1cd", background: "#13111990", borderRadius: 10, padding: "9px 13px", border: `1px solid ${LINE}` },

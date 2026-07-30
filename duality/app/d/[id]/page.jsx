@@ -36,6 +36,8 @@ export default function DuelPage({ params, searchParams }) {
       duelId={params.id}
       demo={searchParams?.demo === "1"}
       initialSide={lado === "a" || lado === "b" ? lado : null}
+      initialTv={searchParams?.tv === "1"}
+      initialVertical={searchParams?.v === "1"}
     />
   );
 }

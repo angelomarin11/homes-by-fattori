@@ -18,7 +18,7 @@ export default function Admin() {
   const [busy, setBusy] = useState(false);
   // forms
   const [creator, setCreator] = useState({ name: "", email: "", country: "BR", pagarmeRecipientId: "" });
-  const [duel, setDuel] = useState({ creatorId: "", title: "", sideA: "", sideB: "", colorA: "#F5C84B", colorB: "#E03A2F", holdHours: 24, currency: "BRL" });
+  const [duel, setDuel] = useState({ creatorId: "", title: "", sideA: "", sideB: "", colorA: "#7C5CFF", colorB: "#FF9F1C", holdHours: 24, currency: "BRL", storeUrl: "" });
 
   useEffect(() => { try { const s = localStorage.getItem("duality_admin"); if (s) { setSecret(s); } } catch {} }, []);
   const toast = (m) => { setMsg(m); setTimeout(() => setMsg(null), 3000); };
@@ -118,6 +118,7 @@ export default function Admin() {
             <select value={duel.currency} onChange={e => setDuel(x => ({ ...x, currency: e.target.value }))} style={S.input}>
               <option value="BRL">BRL · Pix</option><option value="USD">USD · Stripe</option><option value="EUR">EUR · Stripe</option>
             </select>
+            <input style={{ ...S.input, gridColumn: "1 / -1" }} placeholder="🛍️ link da loja do criador (https://… · opcional)" value={duel.storeUrl} onChange={e => setDuel(x => ({ ...x, storeUrl: e.target.value }))} />
             <button onClick={createDuel} disabled={busy || !duel.creatorId || !duel.title || !duel.sideA || !duel.sideB}
               style={{ ...S.launch, opacity: (busy || !duel.creatorId || !duel.title || !duel.sideA || !duel.sideB) ? .45 : 1 }}>Criar →</button>
           </div>
