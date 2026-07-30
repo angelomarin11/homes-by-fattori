@@ -53,6 +53,7 @@ function LiveInner({ duelId, demo, initialSide, initialTv, initialVertical }) {
   const [buy, setBuy] = useState(null);              // { phase: creating|qr|paid, kind, ...charge }
   const [toast, setToast] = useState(null);
   const [tv, setTv] = useState(initialTv);   // ?tv=1 → OBS abre direto no modo TV
+  const [kit, setKit] = useState(false);     // kit da live: links prontos pra chat/OBS/TikTok
   const [hype, setHype] = useState(null);
   const [tick, setTick] = useState(0);
   const [holdLeft, setHoldLeft] = useState(0);
@@ -281,6 +282,7 @@ function LiveInner({ duelId, demo, initialSide, initialTv, initialVertical }) {
       <header style={{ ...S.phead, position: "relative" }}>
         <div style={S.brand}>DUALITY</div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <button onClick={() => setKit(true)} style={{ ...S.shareTop, color: "#ffb84a" }} title={t.kit_title}>🎬 {t.kit_btn}</button>
           <button onClick={() => setTv(true)} style={S.tvTop} title={t.tv_tip}>⏺ {t.tv_btn}</button>
           <button onClick={async () => {
             // convocação, não convite neutro: o link sai com o SEU lado pré-marcado
@@ -496,6 +498,36 @@ function LiveInner({ duelId, demo, initialSide, initialTv, initialVertical }) {
                 {buy.kind === "eternal" && <p style={S.term}>{bold(t.term)}</p>}
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* KIT DA LIVE — o streamer copia e cola: chat, OBS, TikTok Studio */}
+      {kit && (
+        <div style={S.overlay} onClick={() => setKit(false)}>
+          <div style={S.sheet} onClick={e => e.stopPropagation()}>
+            <div style={S.grab} />
+            <div style={{ ...S.rankTitle, marginBottom: 12 }}>🎬 {t.kit_title}</div>
+            {(() => {
+              const base = typeof location !== "undefined" ? `${location.origin}/d/${duelId}` : `/d/${duelId}`;
+              const rows = [
+                { label: t.kit_arena, value: base },
+                { label: t.kit_chat, value: t.kit_chat_text(cfg.title, base, cfg.a, cfg.b) },
+                { label: t.kit_obs, value: `${base}?tv=1` },
+                { label: t.kit_tiktok, value: `${base}?tv=1&v=1` },
+              ];
+              return rows.map(r => (
+                <div key={r.label} style={{ display: "flex", alignItems: "center", gap: 10, background: "#0e0c14", border: `1px solid ${LINE}`, borderRadius: 11, padding: "10px 12px", marginBottom: 8 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontFamily: FM, fontSize: 10, letterSpacing: 1, color: DIM, textTransform: "uppercase", marginBottom: 3 }}>{r.label}</div>
+                    <div style={{ fontFamily: FM, fontSize: 11, color: "#c4c1cd", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.value}</div>
+                  </div>
+                  <button onClick={() => { navigator.clipboard.writeText(r.value); show(t.copied); }}
+                    style={{ ...S.crewBtn, borderColor: "#ffb84a", color: "#ffb84a", padding: "8px 12px" }}>{t.copy}</button>
+                </div>
+              ));
+            })()}
+            <p style={S.shareHint}>{t.kit_hint}</p>
           </div>
         </div>
       )}
