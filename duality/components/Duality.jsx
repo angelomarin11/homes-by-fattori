@@ -225,13 +225,14 @@ function Home({ onCreate, onPlay, onReplay }) {
   );
 }
 
+// texto em vez de emoji de bandeira: Windows não renderiza 🇧🇷🇺🇸🇪🇸 (vira caixa)
 function LangPicker() {
   const { lang, setLang } = useT();
   return (
     <div style={S.langPick}>
       {Object.values(DICT).map(d => (
         <button key={d.code} onClick={() => setLang(d.code)} title={d.name}
-          style={{ ...S.langBtn, ...(lang === d.code ? S.langOn : {}) }}>{d.flag}</button>
+          style={{ ...S.langBtn, ...(lang === d.code ? S.langOn : {}) }}>{d.code.toUpperCase()}</button>
       ))}
     </div>
   );
@@ -266,6 +267,14 @@ function Create({ cfg, setCfg, onLaunch }) {
         </div>
         <Fld label={t.name_field}><input style={S.input} value={cfg.title} maxLength={42} onChange={e => set("title", e.target.value)} /></Fld>
         <div style={S.row}><Fld label={t.side_a}><input style={S.input} value={cfg.a} maxLength={20} onChange={e => set("a", e.target.value)} /></Fld><Fld label={t.side_b}><input style={S.input} value={cfg.b} maxLength={20} onChange={e => set("b", e.target.value)} /></Fld></div>
+
+        {/* v3.1: criar é SÓ isso — o botão vem antes da personalização */}
+        <button style={{ ...S.launch, opacity: ready ? 1 : 0.45 }} disabled={!ready} onClick={onLaunch}>{t.launch}</button>
+        <p style={{ ...S.note, marginBottom: 18 }}>{t.create_easy}</p>
+
+        <details className="howBox" style={{ ...S.studioCard, marginBottom: 18 }}>
+        <summary style={S.label}>{t.customize}</summary>
+        <div style={{ marginTop: 14 }}>
         <div style={S.row}><Fld label={`${t.color} A`}><div style={S.colorRow}><input type="color" value={cfg.colorA} onChange={e => set("colorA", e.target.value)} style={S.color} /><span style={S.hex}>{cfg.colorA}</span></div></Fld><Fld label={`${t.color} B`}><div style={S.colorRow}><input type="color" value={cfg.colorB} onChange={e => set("colorB", e.target.value)} style={S.color} /><span style={S.hex}>{cfg.colorB}</span></div></Fld></div>
         <div style={S.row}>
           <Fld label={`${t.img} A`}><button style={S.up} onClick={() => fA.current.click()}>{cfg.imgA ? t.change : t.upload}</button><input ref={fA} type="file" accept="image/*" hidden onChange={e => up("imgA", e.target.files[0])} />{cfg.imgA && <button style={S.clear} onClick={() => set("imgA", null)}>{t.remove}</button>}</Fld>
@@ -318,7 +327,8 @@ function Create({ cfg, setCfg, onLaunch }) {
         </div>
 
         <div style={S.tip}>{bold(t.tip.replace(`${BASE}`, `${money.cur}${BASE}`))}</div>
-        <button style={{ ...S.launch, opacity: ready ? 1 : 0.45 }} disabled={!ready} onClick={onLaunch}>{t.launch}</button>
+        </div>
+        </details>
         <p style={S.note}>{t.saved_note}</p>
       </div>
     </div>
