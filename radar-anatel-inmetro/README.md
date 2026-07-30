@@ -1,12 +1,19 @@
 # Radar Conformidade — Scanner ANATEL/INMETRO (MVP)
 
-Analisa o catálogo de um vendedor do Mercado Livre e gera um relatório de risco
+Analisa catálogos de vendedores do Mercado Livre e gera relatórios de risco
 de compliance: produtos que exigem **homologação ANATEL** (RF/telecom, Res.
 780/2025) ou **certificação INMETRO**, com semáforo 🔴/🟡/🟢 e **faturamento
 mensal em risco**.
 
+**Modelo de negócio: licenciamento para certificadoras (OCD).** A certificadora
+aluga o sistema white-label e o usa como máquina de prospecção: escaneia lojas
+do seu nicho em lote, recebe um **ranking de leads** ordenado por oportunidade
+e envia ao lojista o **relatório com a marca dela** como diagnóstico gratuito —
+o caminho de regularização aponta para o serviço dela. Pitch completo em
+[`docs/proposta-comercial.md`](docs/proposta-comercial.md).
+
 > MVP de validação. Sem banco de dados, sem login, sem dashboard — um CLI que
-> gera um relatório HTML (imprimível em PDF) bom o suficiente para vender.
+> gera relatórios HTML (imprimíveis em PDF) bons o suficiente para vender.
 
 ## Uso
 
@@ -20,6 +27,9 @@ node scan.js --seller me --out relatorio.html
 # Scan por nickname (depende da busca pública do ML, hoje restrita)
 node scan.js --seller "nickname_da_loja" --out relatorio.html
 
+# Modo certificadora: lote white-label + ranking de leads + CSV p/ CRM
+node scan.js --sellers lojas.txt --brand minha-certificadora.json --out-dir relatorios/
+
 # Demonstração offline (fixtures, sem rede) + teste de regressão
 npm run demo
 npm test
@@ -27,6 +37,17 @@ npm test
 
 Flags: `--max-items N` limita o scan; `--no-llm` desliga a Camada B; `--mock`
 usa os dados de exemplo.
+
+**White-label (`--brand`):** JSON com `nome`, `corPrimaria`, `contato`
+(`whatsapp`/`telefone`/`email`/`site`) e `cta` — ver exemplo em
+`fixtures/brand-demo.json`. Os relatórios saem com a identidade da
+certificadora e CTA de regularização apontando para ela; o rodapé mantém
+"tecnologia Radar Conformidade" (desligável com `"poweredBy": false`).
+
+**Lote (`--sellers arquivo.txt`):** um nickname/seller_id por linha (`#`
+comenta). Gera na pasta de saída: um relatório HTML por loja, `leads.html`
+(ranking por nº de críticos × faturamento em risco) e `leads.csv` (importável
+em CRM). Falhas individuais não derrubam o lote.
 
 O HTML abre em qualquer navegador; `Ctrl/Cmd+P → salvar como PDF` gera o
 entregável final.

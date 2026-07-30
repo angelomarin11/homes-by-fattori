@@ -4,6 +4,7 @@
  */
 import { escapeHtml as esc, formatBRL } from './util.js';
 import { formatCode } from './anatel.js';
+import { DEFAULT_BRAND, contactLine } from './brand.js';
 
 const STATUS_META = {
   critico: { label: 'CRÍTICO', emoji: '🔴', color: '#b91c1c', bg: '#fef2f2', border: '#fecaca' },
@@ -35,7 +36,7 @@ function itemRow(it) {
   </tr>`;
 }
 
-function itemCard(it) {
+function itemCard(it, brand) {
   const m = STATUS_META[it.status];
   return `
   <div class="card" style="border-left:4px solid ${m.color}">
@@ -50,11 +51,13 @@ function itemCard(it) {
       <div><span class="muted">Regulação</span><br>${esc(REG_LABEL[it.cls.regulado] ?? '—')}</div>
     </div>
     <p class="motivo">${esc(it.statusMotivo)}</p>
-    ${it.status === 'critico' ? REGULARIZACAO_HTML : ''}
+    ${it.status === 'critico' ? regularizacaoHtml(brand) : ''}
   </div>`;
 }
 
-const REGULARIZACAO_HTML = `
+function regularizacaoHtml(brand) {
+  const branded = brand?.cta && brand.nome !== DEFAULT_BRAND.nome;
+  return `
     <details class="howto">
       <summary>Caminho de regularização</summary>
       <ol>
@@ -63,9 +66,12 @@ const REGULARIZACAO_HTML = `
         <li><strong>Prazo e custo típicos:</strong> variam com o tipo de produto e a documentação disponível — em geral algumas semanas a poucos meses, e de alguns milhares a dezenas de milhares de reais em ensaios/certificação. Peça orçamento a 2–3 OCDs.</li>
         <li><strong>Enquanto isso:</strong> avalie pausar o anúncio ou substituir o fornecedor por um com produto já homologado — a remoção pela plataforma ou a autuação tende a custar mais que a pausa voluntária.</li>
       </ol>
+      ${branded ? `<p class="cta-inline"><strong>${esc(brand.nome)}:</strong> ${esc(brand.cta)} ${contactLine(brand) ? `<span class="muted">(${esc(contactLine(brand))})</span>` : ''}</p>` : ''}
     </details>`;
+}
 
-export function renderReport({ seller, items, base, meta }) {
+export function renderReport({ seller, items, base, meta, brand = DEFAULT_BRAND }) {
+  const branded = brand.nome !== DEFAULT_BRAND.nome;
   const criticos = items.filter((i) => i.status === 'critico');
   const atencao = items.filter((i) => i.status === 'atencao');
   const ok = items.filter((i) => i.status === 'ok');
@@ -83,9 +89,9 @@ export function renderReport({ seller, items, base, meta }) {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Radar Conformidade — ${esc(seller.nickname)}</title>
+<title>${esc(brand.nome)} — ${esc(seller.nickname)}</title>
 <style>
-  :root { --ink:#0f172a; --muted:#64748b; --line:#e2e8f0; --brand:#1e3a5f; }
+  :root { --ink:#0f172a; --muted:#64748b; --line:#e2e8f0; --brand:${esc(brand.corPrimaria)}; }
   * { box-sizing: border-box; }
   body { margin:0; font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color:var(--ink); background:#f8fafc; }
   .page { max-width: 900px; margin: 0 auto; padding: 32px 24px 64px; }
@@ -117,6 +123,11 @@ export function renderReport({ seller, items, base, meta }) {
   .motivo { font-size: 14px; margin: 8px 0 0; }
   .howto { margin-top: 12px; font-size: 14px; background:#f8fafc; border:1px solid var(--line); border-radius:8px; padding: 10px 14px; }
   .howto summary { cursor:pointer; font-weight:600; }
+  .cta-inline { border-top:1px solid var(--line); margin-top:10px; padding-top:10px; }
+  .cta-box { background: var(--brand); color:#fff; border-radius: 12px; padding: 20px 26px; margin: 0 0 8px; }
+  .cta-box .cta-title { font-size:13px; text-transform:uppercase; letter-spacing:.6px; opacity:.8; margin-bottom:6px; }
+  .cta-box p { margin: 4px 0; font-size: 15px; }
+  .cta-box .cta-contact { font-weight: 700; margin-top: 8px; }
   .howto ol { margin: 10px 0 4px; padding-left: 20px; }
   .howto li { margin: 6px 0; }
   footer { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; line-height: 1.6; }
@@ -139,7 +150,7 @@ export function renderReport({ seller, items, base, meta }) {
 <div class="page">
 
   <header class="capa">
-    <div class="logo"><span class="dot"></span> Radar Conformidade</div>
+    <div class="logo"><span class="dot"></span> ${esc(brand.nome)}</div>
     <h1>Relatório de Conformidade ANATEL / INMETRO</h1>
     <div class="sub">
       Loja: <strong>${esc(seller.nickname)}</strong>
@@ -164,9 +175,11 @@ export function renderReport({ seller, items, base, meta }) {
     </div>
   </div>
 
-  ${criticos.length ? `<h2>🔴 Críticos (${criticos.length}) — agir agora</h2>${criticos.map(itemCard).join('')}` : '<h2>🔴 Críticos</h2><p class="muted">Nenhum anúncio crítico identificado. 🎉</p>'}
+  ${branded && brand.cta ? `<div class="cta-box"><div class="cta-title">Como regularizar</div><p>${esc(brand.cta)}</p>${contactLine(brand) ? `<p class="cta-contact">${esc(contactLine(brand))}</p>` : ''}</div>` : ''}
 
-  ${atencao.length ? `<h2>🟡 Atenção (${atencao.length}) — verificar</h2>${atencao.map(itemCard).join('')}` : ''}
+  ${criticos.length ? `<h2>🔴 Críticos (${criticos.length}) — agir agora</h2>${criticos.map((i) => itemCard(i, brand)).join('')}` : '<h2>🔴 Críticos</h2><p class="muted">Nenhum anúncio crítico identificado. 🎉</p>'}
+
+  ${atencao.length ? `<h2>🟡 Atenção (${atencao.length}) — verificar</h2>${atencao.map((i) => itemCard(i, brand)).join('')}` : ''}
 
   <h2>🟢 OK (${ok.length})</h2>
   ${ok.length ? `<table>
@@ -184,7 +197,7 @@ export function renderReport({ seller, items, base, meta }) {
   <footer>
     Relatório informativo baseado em dados públicos (API Mercado Livre e base de homologação ANATEL). Não constitui parecer jurídico.
     Análise automatizada sujeita a falsos positivos — recomenda-se validação antes de qualquer decisão.<br>
-    Gerado por Radar Conformidade em ${dataScan}.
+    ${branded ? `Preparado por ${esc(brand.nome)}${brand.poweredBy ? ' · tecnologia Radar Conformidade' : ''}` : 'Gerado por Radar Conformidade'} em ${dataScan}.
   </footer>
 
 </div>

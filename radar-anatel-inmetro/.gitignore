@@ -9,4 +9,5 @@ cache/
 
 # Relatórios gerados
 relatorio*.html
+relatorios/
 *.pdf

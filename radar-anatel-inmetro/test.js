@@ -33,6 +33,16 @@ execFileSync('node', ['scan.js', '--mock', '--no-llm', '--out', 'cache/relatorio
   stdio: 'ignore',
 });
 
+// lote white-label (modo certificadora)
+fs.mkdirSync(path.join(ROOT, 'cache'), { recursive: true });
+fs.writeFileSync(path.join(ROOT, 'cache', 'lojas-test.txt'), 'TECHSOM.ELETRONICOS\n');
+execFileSync(
+  'node',
+  ['scan.js', '--mock', '--no-llm', '--sellers', 'cache/lojas-test.txt',
+   '--brand', 'fixtures/brand-demo.json', '--out-dir', 'cache/relatorios-test'],
+  { cwd: ROOT, stdio: 'ignore' }
+);
+
 const scan = JSON.parse(
   fs.readFileSync(path.join(ROOT, 'cache', 'scan-TECHSOM_ELETRONICOS.json'), 'utf8')
 );
@@ -50,6 +60,27 @@ for (const needle of ['Radar Conformidade', 'Faturamento mensal em risco', 'Não
   if (!html.includes(needle)) {
     failures++;
     console.error(`✖ relatório não contém: "${needle}"`);
+  }
+}
+
+// white-label: marca, cor, contato e powered-by no relatório; ranking + csv no lote
+const branded = fs.readFileSync(path.join(ROOT, 'cache', 'relatorios-test', 'TECHSOM_ELETRONICOS.html'), 'utf8');
+for (const needle of ['CertifiQA Certificações', '#134e4a', 'comercial@certifiqa.com.br', 'tecnologia Radar Conformidade']) {
+  if (!branded.includes(needle)) {
+    failures++;
+    console.error(`✖ relatório white-label não contém: "${needle}"`);
+  }
+}
+const leadsHtml = fs.readFileSync(path.join(ROOT, 'cache', 'relatorios-test', 'leads.html'), 'utf8');
+const leadsCsv = fs.readFileSync(path.join(ROOT, 'cache', 'relatorios-test', 'leads.csv'), 'utf8');
+for (const [name, doc, needle] of [
+  ['leads.html', leadsHtml, 'Ranking de prospecção'],
+  ['leads.html', leadsHtml, 'TECHSOM.ELETRONICOS'],
+  ['leads.csv', leadsCsv, 'faturamento_risco_mensal_brl'],
+]) {
+  if (!doc.includes(needle)) {
+    failures++;
+    console.error(`✖ ${name} não contém: "${needle}"`);
   }
 }
 
