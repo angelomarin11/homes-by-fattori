@@ -54,6 +54,8 @@ function LiveInner({ duelId, demo, initialSide, initialTv, initialVertical }) {
   const [toast, setToast] = useState(null);
   const [tv, setTv] = useState(initialTv);   // ?tv=1 → OBS abre direto no modo TV
   const [kit, setKit] = useState(false);     // kit da live: links prontos pra chat/OBS/TikTok
+  const [welcome, setWelcome] = useState(false);
+  useEffect(() => { try { if (!localStorage.getItem("duality_welcome")) setWelcome(true); } catch {} }, []);
   const [hype, setHype] = useState(null);
   const [tick, setTick] = useState(0);
   const [holdLeft, setHoldLeft] = useState(0);
@@ -381,26 +383,6 @@ function LiveInner({ duelId, demo, initialSide, initialTv, initialVertical }) {
               <button onClick={() => setSide("b")} style={{ ...S.sideBtn, ...(!isA ? { borderColor: cfg.colorB, background: cfg.colorB + "1c", color: "#fff" } : {}) }}>{cfg.imgB && <img src={cfg.imgB} alt="" style={S.sideImg} />}{cfg.b}</button>
             </div>
 
-            <div style={S.label}>{t.flair_label} · <span style={{ textTransform: "none", letterSpacing: 0 }}>{t.flair_hint}</span></div>
-            <div style={S.flairRow}>
-              {FLAIRS.map(f => (<button key={f} onClick={() => setFlair(f)} style={{ ...S.flairBtn, ...(flair === f ? S.flairOn : {}) }}>{f}</button>))}
-            </div>
-
-            <div style={S.label}>{myCrew ? t.crew_yours : t.crew_head}</div>
-            {myCrew ? (
-              <div style={S.crewMine}>
-                <span style={{ ...S.crewMineTag, color: accent }}>⚑ {myCrew}</span>
-                <span style={{ ...S.crewHint, flex: 1 }}>{t.crew_member(myCrew)}</span>
-                <button onClick={() => { setMyCrew(null); saveProfile({ crew: null }); }} style={S.crewLeave}>{t.crew_leave}</button>
-              </div>
-            ) : (
-              <div style={S.crewJoinRow}>
-                <input value={crewInput} onChange={e => setCrewInput(normalizeCrewTag(e.target.value))} placeholder={t.crew_ph} maxLength={5} style={S.crewInput} />
-                <button onClick={() => { const tag = normalizeCrewTag(crewInput); if (tag.length >= 2) { setMyCrew(tag); setCrewInput(""); saveProfile({ crew: tag }); } }} disabled={normalizeCrewTag(crewInput).length < 2} style={{ ...S.crewBtn, borderColor: accent, color: accent, opacity: normalizeCrewTag(crewInput).length < 2 ? .45 : 1 }}>⚑ {t.crew_join}</button>
-              </div>
-            )}
-            <div style={{ ...S.crewHint, marginBottom: 14 }}>{t.crew_hint}</div>
-
             {/* FICHAS DE VALOR (v3) — ancoragem; a contabilidade fica no servidor */}
             <div style={S.label}>{t.push_label}</div>
             <div style={S.amtRow}>
@@ -431,6 +413,30 @@ function LiveInner({ duelId, demo, initialSide, initialTv, initialVertical }) {
               )}
               <div style={S.cryTierNote}>{t.cry_tier2} · {t.cry_tier3}</div>
             </div>
+
+            <details className="howBox" style={{ background: "#0e0c14", border: `1px solid ${LINE}`, borderRadius: 12, padding: "11px 13px", margin: "12px 0 4px" }}>
+              <summary style={S.label}>{t.more_opts}</summary>
+              <div style={{ marginTop: 12 }}>
+                <div style={S.label}>{t.flair_label} · <span style={{ textTransform: "none", letterSpacing: 0 }}>{t.flair_hint}</span></div>
+                <div style={S.flairRow}>
+                  {FLAIRS.map(f => (<button key={f} onClick={() => setFlair(f)} style={{ ...S.flairBtn, ...(flair === f ? S.flairOn : {}) }}>{f}</button>))}
+                </div>
+                <div style={S.label}>{myCrew ? t.crew_yours : t.crew_head}</div>
+                {myCrew ? (
+                  <div style={S.crewMine}>
+                    <span style={{ ...S.crewMineTag, color: accent }}>⚑ {myCrew}</span>
+                    <span style={{ ...S.crewHint, flex: 1 }}>{t.crew_member(myCrew)}</span>
+                    <button onClick={() => { setMyCrew(null); saveProfile({ crew: null }); }} style={S.crewLeave}>{t.crew_leave}</button>
+                  </div>
+                ) : (
+                  <div style={S.crewJoinRow}>
+                    <input value={crewInput} onChange={e => setCrewInput(normalizeCrewTag(e.target.value))} placeholder={t.crew_ph} maxLength={5} style={S.crewInput} />
+                    <button onClick={() => { const tag = normalizeCrewTag(crewInput); if (tag.length >= 2) { setMyCrew(tag); setCrewInput(""); saveProfile({ crew: tag }); } }} disabled={normalizeCrewTag(crewInput).length < 2} style={{ ...S.crewBtn, borderColor: accent, color: accent, opacity: normalizeCrewTag(crewInput).length < 2 ? .45 : 1 }}>⚑ {t.crew_join}</button>
+                  </div>
+                )}
+                <div style={S.crewHint}>{t.crew_hint}</div>
+              </div>
+            </details>
 
             <div style={{ ...S.eternal, borderColor: accent + "66" }}>
               <div style={S.eternalHead}><div><div style={S.eternalTitle}><span style={{ color: accent }}>★</span> {t.eternal_title}</div><div style={S.eternalSub}>{t.eternal_sub}</div></div><div style={S.eternalScarce}><div style={{ ...S.eternalLeft, color: eternalLeft <= 10 ? "#ff5a4c" : accent }}>{eternalLeft}</div><div style={S.eternalCap}>{t.eternal_of}</div></div></div>
@@ -498,6 +504,21 @@ function LiveInner({ duelId, demo, initialSide, initialTv, initialVertical }) {
                 {buy.kind === "eternal" && <p style={S.term}>{bold(t.term)}</p>}
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {welcome && !tv && (
+        <div style={{ ...S.winOverlay, zIndex: 95 }}>
+          <div className="winIn" style={S.winCard}>
+            <div style={{ ...S.winName, fontSize: 24, letterSpacing: -.5 }}>{cfg.title}</div>
+            <div style={{ textAlign: "left", margin: "16px 0 4px", display: "flex", flexDirection: "column", gap: 9 }}>
+              {[t.welcome_1, t.welcome_2, t.welcome_3].map((w, i) => (
+                <div key={i} style={{ display: "flex", gap: 10, fontSize: 14.5, color: "#c4c1cd", lineHeight: 1.35 }}><span>{["1️⃣", "2️⃣", "3️⃣"][i]}</span><span>{w}</span></div>
+              ))}
+            </div>
+            <button onClick={() => { setWelcome(false); try { localStorage.setItem("duality_welcome", "1"); } catch {} }}
+              style={{ ...S.sheetCta, background: INK, color: "#0B0A0F", marginTop: 14 }}>{t.welcome_cta}</button>
           </div>
         </div>
       )}
