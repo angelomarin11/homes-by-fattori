@@ -19,6 +19,22 @@ Pra publicar com deploy, domínio e histórico próprios:
 
 **Marco:** repositório `duality` com `npm install && npm test && npm run build` verdes.
 
+### Deploy automático (JÁ CONFIGURADO — falta 1 segredo)
+
+O workflow `.github/workflows/deploy-duality.yml` publica em
+`https://duality-demo.vercel.app` a cada push que toque em `duality/`
+(roda os testes antes; se falharem, não publica). Pra ativar, uma única vez:
+
+1. https://vercel.com/account/tokens → **Create Token** (escopo: time `ai-atelier-am-arin`).
+2. No GitHub do repositório: **Settings → Secrets and variables → Actions →
+   New repository secret** — nome `VERCEL_TOKEN`, valor = o token.
+3. Pronto: o próximo push publica sozinho (ou rode manualmente na aba
+   **Actions → deploy-duality → Run workflow**).
+
+Quando migrar pro repositório `duality` próprio, leve o workflow junto
+(ajustando `working-directory`) ou conecte o repositório direto na Vercel
+(Import Git Repository), que dispensa o workflow.
+
 ---
 
 ## Fase 1 · Infra grátis: Supabase + Vercel (1–2 h)
