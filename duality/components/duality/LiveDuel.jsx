@@ -316,8 +316,8 @@ function LiveInner({ duelId, demo, initialSide, initialTv, initialVertical }) {
 
       {!winner && goal && (
         <div className="goalGlint" style={{ ...S.goalBar, position: "relative" }}>
-          <span style={S.goalIcon}>◎</span>
-          <span>{t.goal(goal.need, isA ? cfg.a : cfg.b, goal.pct)}</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={S.goalIcon}>◎</span><span>{t.goal(goal.need, isA ? cfg.a : cfg.b, goal.pct)}</span></div>
+          <div style={S.goalFill}><div style={{ height: "100%", width: `${Math.min(100, Math.round(sideCount / Math.ceil(total * goal.pct / 100) * 100))}%`, background: accent, transition: "width .6s ease" }} /></div>
         </div>
       )}
 
@@ -348,36 +348,6 @@ function LiveInner({ duelId, demo, initialSide, initialTv, initialVertical }) {
           <a href={duel.store_url} target="_blank" rel="noopener noreferrer" style={{ ...S.cryChip, textDecoration: "none", color: "#c4c1cd" }}>🛍️ {t.store_link}</a>
         )}
         <a href="/" style={{ ...S.cryChip, textDecoration: "none", color: "#c4c1cd" }}>➕ {t.create_yours}</a>
-      </div>
-
-      {crews.length > 0 && (
-        <div style={{ ...S.rank, position: "relative" }}>
-          <div style={S.rankTitle}>{t.crew_head}</div>
-          {crews.map((c, i) => (
-            <div key={c.tag} style={S.rankRow}>
-              <span style={S.rankPos}>{i + 1}</span>
-              <span style={{ ...S.rankName, fontFamily: FD, fontWeight: 800, color: c.side === "a" ? cfg.colorA : cfg.colorB }}>⚑ {c.tag}</span>
-              <span style={S.rankVal}>{c.points}</span>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {ranking.length > 0 && (
-        <div style={{ ...S.rank, position: "relative" }}><div style={S.rankTitle}>{t.contributors}</div>{ranking.map((r, i) => (<div key={r.buyer_name} style={S.rankRow}><span style={S.rankPos}>{i + 1}</span><span style={S.rankName}>{r.buyer_name}</span><span style={S.rankVal}>{r.blocks}</span></div>))}</div>
-      )}
-
-      <div style={{ ...S.feed, position: "relative" }}>
-        {feedItems.length === 0 ? <div style={S.feedEmpty}>{t.feed_empty}</div> : feedItems.map(f => (
-          <div key={f.ts} className={f.tier >= 2 ? "cry2" : "feedItem"}
-            style={{ ...S.feedItem, ...(f.tier >= 2 ? { ...S.feedTier2, borderColor: (f.side === "a" ? cfg.colorA : cfg.colorB) + "88" } : {}) }}>
-            <span style={{ color: f.side === "a" ? cfg.colorA : cfg.colorB }}>{f.eternal ? "★" : "▲"}</span>
-            {f.crew && <span style={{ ...S.crewTag, marginLeft: 6, color: f.side === "a" ? cfg.colorA : cfg.colorB }}>{f.crew}</span>}
-            <strong style={{ margin: "0 5px" }}>{f.name}</strong>
-            {f.eternal ? "★" : `+${f.qty}`} · {f.side === "a" ? cfg.a : cfg.b}
-            {f.cry && <span style={{ ...S.feedCry, ...(f.tier >= 2 ? S.feedTier2Cry : {}) }}>“{f.cry}”</span>}
-          </div>
-        ))}
       </div>
 
       {!winner && (
@@ -456,6 +426,37 @@ function LiveInner({ duelId, demo, initialSide, initialTv, initialVertical }) {
           </div>
         </>
       )}
+
+      {crews.length > 0 && (
+        <div style={{ ...S.rank, position: "relative" }}>
+          <div style={S.rankTitle}>{t.crew_head}</div>
+          {crews.map((c, i) => (
+            <div key={c.tag} style={S.rankRow}>
+              <span style={S.rankPos}>{i + 1}</span>
+              <span style={{ ...S.rankName, fontFamily: FD, fontWeight: 800, color: c.side === "a" ? cfg.colorA : cfg.colorB }}>⚑ {c.tag}</span>
+              <span style={S.rankVal}>{c.points}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {ranking.length > 0 && (
+        <div style={{ ...S.rank, position: "relative" }}><div style={S.rankTitle}>{t.contributors}</div>{ranking.map((r, i) => (<div key={r.buyer_name} style={S.rankRow}><span style={S.rankPos}>{i + 1}</span><span style={S.rankName}>{r.buyer_name}</span><span style={S.rankVal}>{r.blocks}</span></div>))}</div>
+      )}
+
+      <div style={{ ...S.feed, position: "relative" }}>
+        {feedItems.length === 0 ? <div style={S.feedEmpty}>{t.feed_empty}</div> : feedItems.map(f => (
+          <div key={f.ts} className={f.tier >= 2 ? "cry2" : "feedItem"}
+            style={{ ...S.feedItem, ...(f.tier >= 2 ? { ...S.feedTier2, borderColor: (f.side === "a" ? cfg.colorA : cfg.colorB) + "88" } : {}) }}>
+            <span style={{ color: f.side === "a" ? cfg.colorA : cfg.colorB }}>{f.eternal ? "★" : "▲"}</span>
+            {f.crew && <span style={{ ...S.crewTag, marginLeft: 6, color: f.side === "a" ? cfg.colorA : cfg.colorB }}>{f.crew}</span>}
+            <strong style={{ margin: "0 5px" }}>{f.name}</strong>
+            {f.eternal ? "★" : `+${f.qty}`} · {f.side === "a" ? cfg.a : cfg.b}
+            {f.cry && <span style={{ ...S.feedCry, ...(f.tier >= 2 ? S.feedTier2Cry : {}) }}>“{f.cry}”</span>}
+          </div>
+        ))}
+      </div>
+
 
       {winner && (
         <div style={S.winOverlay}><div className="winIn" style={S.winCard}>
