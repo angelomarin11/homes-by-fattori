@@ -112,6 +112,30 @@ SQL Editor virou o painel do operador. Moderação de nome cravado ainda é manu
 - **Loop de criadores em todo lugar:** a arena e o monumento de vitória agora têm
   "➕ Criar a minha disputa" — quem assiste uma disputa é o próximo criador.
 
+## Os 7 critérios do jogo (v3.5 — "aditivo honesto")
+
+Referências estudadas: slot machine (feedback/juice — NÃO a aleatoriedade),
+Candy Crush (legibilidade de 1s), paper.io/agar.io (instinto de território),
+Clash Royale (partida curta com clímax), Twitch (zoeira coletiva como conteúdo).
+
+1. **1 segundo** — quem ganha e quem perde, sem ler nada (barra + cores).
+2. **10 segundos** — primeira ação: a HOME já é a escolha ("Gatos ou Cachorros?"
+   com dois botões gigantes; tocar = entrar na arena com o lado marcado, sem
+   onboarding — a escolha É o onboarding).
+3. **Juice** — toda ação explode: +N flutuando no mapa, flash nos blocos,
+   vibração, hype de tela inteira nos gastos grandes.
+4. **Sempre um "quase"** — o próximo marco visível com barra enchendo
+   ("faltam 26 blocos pra 55%"). Quase-acerto REAL (estado do jogo), nunca fabricado.
+5. **Identidade** — nome, cor, emblema: seu rastro permanente na tela.
+6. **Zoeira visível** — a provocação mais recente flutua sobre o mapa; pagar
+   pra responder é o loop social.
+7. **Zero azar pago** — resultado sempre determinístico. A linha vermelha:
+   nada de recompensa aleatória, quase-acerto fabricado ou pressão falsa.
+   É o que nos mantém legais (gateway/lei) e decentes. O vício vem do social.
+
+Ordem da arena (prioridade de decisão): placar → mapa → PAGAR → depois
+regras/rankings/mural. Quem quer entender rola; quem quer agir, age.
+
 ## Riscos que o conceito precisa respeitar (do turno anterior, continuam valendo)
 
 - **Arena vazia**: disputa nunca abre sem audiência + horário. Relâmpago existe pra isso.
