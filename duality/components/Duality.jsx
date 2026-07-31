@@ -48,7 +48,7 @@ export default function Duality() {
       {screen === "trailer" ? <Trailer onEnter={() => setScreen("home")} />
         : screen === "home" ? <Home onCreate={() => setScreen("create")} onPlay={() => setScreen("play")} onReplay={() => setScreen("trailer")} />
           : screen === "create" ? <Create cfg={cfg} setCfg={setCfg} onLaunch={() => setScreen("play")} />
-            : <Play cfg={cfg} onBack={() => setScreen("create")} />}
+            : <Play cfg={cfg} onBack={() => setScreen("home")} />}
     </LangCtx.Provider>
   );
 }
@@ -153,12 +153,16 @@ function Trailer({ onEnter }) {
 // A batalha aparece EM MOVIMENTO nos primeiros segundos — mini-tabuleiro vivo,
 // rotulado como demonstração, sem bloquear o CTA.
 const MB_COLS = 16, MB_ROWS = 9;
+const MB_NAMES = ["Maria", "Pedro", "Ana", "Lucas", "Bia", "João", "Duda", "Rafa"];
 function MiniBattle() {
+  const { t } = useT();
   const [cells, setCells] = useState(() => Array.from({ length: MB_COLS * MB_ROWS }, (_, i) => (i % MB_COLS) < MB_COLS / 2 ? "a" : "b"));
+  const [painters, setPainters] = useState([]);   // a promessa VISÍVEL: nomes cravando blocos
   const target = useRef(62);
   useEffect(() => {
     const iv = setInterval(() => {
       if (Math.random() < 0.18) target.current = 25 + Math.random() * 50;
+      let painted = 0, side = "a";
       setCells(prev => {
         const next = [...prev];
         const cA = next.filter(c => c === "a").length;
@@ -167,9 +171,15 @@ function MiniBattle() {
         const opp = goA ? "b" : "a", me = goA ? "a" : "b";
         const cand = [...next.keys()].filter(i => next[i] === opp)
           .sort((x, y) => Math.abs((x % MB_COLS) - MB_COLS / 2) - Math.abs((y % MB_COLS) - MB_COLS / 2));
-        cand.slice(0, 2 + (Math.random() * 3 | 0)).forEach(i => { next[i] = me; });
+        const take = cand.slice(0, 2 + (Math.random() * 3 | 0));
+        take.forEach(i => { next[i] = me; });
+        painted = take.length; side = me;
         return next;
       });
+      if (painted > 0 && Math.random() < 0.6) {
+        const nm = MB_NAMES[Math.random() * MB_NAMES.length | 0];
+        setPainters(p => [{ nm, side, n: painted, ts: Date.now() + Math.random() }, ...p].slice(0, 2));
+      }
     }, 420);
     return () => clearInterval(iv);
   }, []);
@@ -188,6 +198,14 @@ function MiniBattle() {
         <div style={{ width: `${pctA}%`, background: "#7C5CFF", transition: "width .5s ease" }} />
         <div style={{ width: `${100 - pctA}%`, background: "#FF9F1C", transition: "width .5s ease" }} />
         <div style={{ ...S.cursor, left: `${pctA}%`, height: 16 }} />
+      </div>
+      {/* nomes sendo cravados AO VIVO — a promessa central, visível */}
+      <div style={{ minHeight: 46, marginTop: 8, display: "flex", flexDirection: "column", gap: 4 }}>
+        {painters.map(p => (
+          <div key={p.ts} className="feedItem" style={{ fontFamily: FM, fontSize: 11, color: "#c4c1cd" }}>
+            ✍️ <strong style={{ color: p.side === "a" ? "#7C5CFF" : "#FF9F1C" }}>{p.nm}</strong> {t.demo_paint(p.n)} {p.side === "a" ? "🐱" : "🐶"}
+          </div>
+        ))}
       </div>
     </>
   );
@@ -209,9 +227,10 @@ function Home({ onCreate, onPlay, onReplay }) {
         </div>
         <button style={S.homeCtaMain} onClick={onPlay}>{t.home_cta_play}</button>
         <button style={S.homeCtaAlt} onClick={onCreate}>➕ {t.home_cta_create}</button>
+        {/* 3 verdades, em linguagem de gente — nada de jargão de mecânica */}
         <div style={S.homeFeatures}>
-          {[t.home_f1, t.home_f4, t.home_f5, t.home_f2, t.home_f3].map((f, i) => (
-            <div key={i} style={S.homeFeature}><span style={S.homeFeatureIcon}>{["⇄", "📣", "⚑", "♛", "★"][i]}</span>{f}</div>
+          {[t.home_f1, t.home_f2, t.home_f3].map((f, i) => (
+            <div key={i} style={{ ...S.homeFeature, fontSize: 15 }}><span style={S.homeFeatureIcon}>{["💰", "✍️", "🏆"][i]}</span>{f}</div>
           ))}
         </div>
         {/* PARA STREAMERS — OBS e TikTok Live */}
@@ -360,6 +379,8 @@ function Play({ cfg, onBack }) {
   const [holdDeadline, setHoldDeadline] = useState(0);
   const [holdLeft, setHoldLeft] = useState(0);
   const [freeTries, setFreeTries] = useState(1);
+  const [welcome, setWelcome] = useState(false);
+  useEffect(() => { try { if (!localStorage.getItem("duality_welcome")) setWelcome(true); } catch {} }, []);
   // v2
   const [cry, setCry] = useState("");
   const [crews, setCrews] = useState({});          // TAG -> { tag, side, points }
@@ -487,7 +508,7 @@ function Play({ cfg, onBack }) {
     <div style={{ ...S.proot, background: BG }}><style dangerouslySetInnerHTML={{ __html: FONTS + CSS }} />
       <div style={{ ...S.aurora, background: skin.aurora, position: "fixed" }} />
       <header style={{ ...S.phead, position: "relative" }}>
-        <button onClick={onBack} style={S.back}>← {t.edit}</button>
+        <button onClick={onBack} style={S.back}>← {t.back_home}</button>
         <div style={S.brand}>DUALITY</div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <button onClick={() => setTv(true)} style={S.tvTop} title={t.tv_tip}>⏺ {t.tv_btn}</button>
@@ -539,8 +560,8 @@ function Play({ cfg, onBack }) {
       <details className="howBox" style={{ ...S.diagram, position: "relative" }}>
         <summary style={S.diagTitle}>{t.how}</summary>
         <div style={{ ...S.diagSteps, marginTop: 12 }}>
-          {[t.step1, t.step2, t.step3, t.step4, t.step5, t.step6].map((s, i) => (
-            <div key={i} style={S.diagStep}><span style={{ ...S.diagIcon, color: ["#EDE9E0", "#EDE9E0", "#ffb84a", "#5ad07a", "#EDE9E0", "#fff"][i] }}>{["◧", "⇄", "⚡", "⬇", "♛", "★"][i]}</span><span style={S.diagText}>{bold(s)}</span></div>
+          {[t.step1, t.step2, t.step3, t.step4].map((s, i) => (
+            <div key={i} style={S.diagStep}><span style={{ ...S.diagIcon, color: ["#EDE9E0", "#EDE9E0", "#ffb84a", "#5ad07a"][i] }}>{["🖌", "⇄", "⚡", "⬇"][i]}</span><span style={S.diagText}>{bold(s)}</span></div>
           ))}
         </div>
         <div style={S.diagRuler}>
@@ -590,30 +611,6 @@ function Play({ cfg, onBack }) {
               <button onClick={() => { setSide("b"); haptic(8); }} style={{ ...S.sideBtn, ...(!isA ? { borderColor: cfg.colorB, background: cfg.colorB + "1c", color: "#fff" } : {}) }}>{cfg.imgB && <img src={cfg.imgB} alt="" style={S.sideImg} />}{cfg.b}</button>
             </div>
 
-            {/* EMBLEMA — marca pessoal nos blocos */}
-            <div style={S.label}>{t.flair_label} · <span style={{ textTransform: "none", letterSpacing: 0 }}>{t.flair_hint}</span></div>
-            <div style={S.flairRow}>
-              {FLAIRS.map(f => (
-                <button key={f} onClick={() => { setFlair(f); haptic(6); }} style={{ ...S.flairBtn, ...(flair === f ? S.flairOn : {}) }}>{f}</button>
-              ))}
-            </div>
-
-            {/* EQUIPE — status coletivo, nunca payout */}
-            <div style={S.label}>{myCrew ? t.crew_yours : t.crew_head}</div>
-            {myCrew ? (
-              <div style={S.crewMine}>
-                <span style={{ ...S.crewMineTag, color: accent }}>⚑ {myCrew}</span>
-                <span style={{ ...S.crewHint, flex: 1 }}>{t.crew_member(myCrew)}</span>
-                <button onClick={() => setMyCrew(null)} style={S.crewLeave}>{t.crew_leave}</button>
-              </div>
-            ) : (
-              <div style={S.crewJoinRow}>
-                <input value={crewInput} onChange={e => setCrewInput(normalizeCrewTag(e.target.value))} placeholder={t.crew_ph} maxLength={5} style={S.crewInput} />
-                <button onClick={joinCrew} disabled={normalizeCrewTag(crewInput).length < 2} style={{ ...S.crewBtn, borderColor: accent, color: accent, opacity: normalizeCrewTag(crewInput).length < 2 ? .45 : 1 }}>⚑ {t.crew_join}</button>
-              </div>
-            )}
-            <div style={{ ...S.crewHint, marginBottom: 14 }}>{t.crew_hint}</div>
-
             {freeTries > 0 && <button onClick={freeTry} style={{ ...S.tryBtn, borderColor: accent, color: accent }}>{t.try_free}</button>}
 
             {/* FICHAS DE VALOR (v3) — ancoragem, zero slider, matemática invisível */}
@@ -646,6 +643,32 @@ function Play({ cfg, onBack }) {
               )}
               <div style={S.cryTierNote}>{t.cry_tier2} · {t.cry_tier3}</div>
             </div>
+
+            <details className="howBox" style={{ background: "#0e0c14", border: `1px solid #221F2B`, borderRadius: 12, padding: "11px 13px", margin: "12px 0 4px" }}>
+              <summary style={S.label}>{t.more_opts}</summary>
+              <div style={{ marginTop: 12 }}>
+                <div style={S.label}>{t.flair_label} · <span style={{ textTransform: "none", letterSpacing: 0 }}>{t.flair_hint}</span></div>
+                <div style={S.flairRow}>
+                  {FLAIRS.map(f => (
+                    <button key={f} onClick={() => { setFlair(f); haptic(6); }} style={{ ...S.flairBtn, ...(flair === f ? S.flairOn : {}) }}>{f}</button>
+                  ))}
+                </div>
+                <div style={S.label}>{myCrew ? t.crew_yours : t.crew_head}</div>
+                {myCrew ? (
+                  <div style={S.crewMine}>
+                    <span style={{ ...S.crewMineTag, color: accent }}>⚑ {myCrew}</span>
+                    <span style={{ ...S.crewHint, flex: 1 }}>{t.crew_member(myCrew)}</span>
+                    <button onClick={() => setMyCrew(null)} style={S.crewLeave}>{t.crew_leave}</button>
+                  </div>
+                ) : (
+                  <div style={S.crewJoinRow}>
+                    <input value={crewInput} onChange={e => setCrewInput(normalizeCrewTag(e.target.value))} placeholder={t.crew_ph} maxLength={5} style={S.crewInput} />
+                    <button onClick={joinCrew} disabled={normalizeCrewTag(crewInput).length < 2} style={{ ...S.crewBtn, borderColor: accent, color: accent, opacity: normalizeCrewTag(crewInput).length < 2 ? .45 : 1 }}>⚑ {t.crew_join}</button>
+                  </div>
+                )}
+                <div style={S.crewHint}>{t.crew_hint}</div>
+              </div>
+            </details>
 
             <div style={{ ...S.eternal, borderColor: accent + "66" }}>
               <div style={S.eternalHead}><div><div style={S.eternalTitle}><span style={{ color: accent }}>★</span> {t.eternal_title}</div><div style={S.eternalSub}>{t.eternal_sub}</div></div><div style={S.eternalScarce}><div style={{ ...S.eternalLeft, color: eternalLeft <= 10 ? "#ff5a4c" : accent }}>{eternalLeft}</div><div style={S.eternalCap}>{t.eternal_of}</div></div></div>
@@ -732,6 +755,23 @@ function Play({ cfg, onBack }) {
               })}
             </div>
             <p style={S.shareHint}>{t.share_hint}</p>
+          </div>
+        </div>
+      )}
+
+      {/* primeira visita: o jogo em 3 linhas (feedback do teste com usuário real) */}
+      {welcome && (
+        <div style={{ ...S.winOverlay, zIndex: 95 }}>
+          <div className="winIn" style={S.winCard}>
+            <div style={{ fontSize: 40, marginBottom: 6 }}>🐱⚔️🐶</div>
+            <div style={{ ...S.winName, fontSize: 26, letterSpacing: -.5 }}>{cfg.title}</div>
+            <div style={{ textAlign: "left", margin: "16px 0 4px", display: "flex", flexDirection: "column", gap: 9 }}>
+              {[t.welcome_1, t.welcome_2, t.welcome_3].map((w, i) => (
+                <div key={i} style={{ display: "flex", gap: 10, fontSize: 14.5, color: "#c4c1cd", lineHeight: 1.35 }}><span>{["1️⃣", "2️⃣", "3️⃣"][i]}</span><span>{w}</span></div>
+              ))}
+            </div>
+            <button onClick={() => { setWelcome(false); try { localStorage.setItem("duality_welcome", "1"); } catch {} }}
+              style={{ ...S.sheetCta, background: INK, color: BG, marginTop: 14 }}>{t.welcome_cta}</button>
           </div>
         </div>
       )}
