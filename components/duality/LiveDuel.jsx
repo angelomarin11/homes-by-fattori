@@ -330,8 +330,14 @@ function LiveInner({ duelId, demo, initialSide, initialTv, initialVertical }) {
       )}
 
       <div style={{ position: "relative" }}>
+        {(() => { const c = feedItems.find(x => x.cry); return c && !winner ? (
+          <div className="feedItem" style={S.boardCry}>📣 <strong style={{ color: c.side === "a" ? cfg.colorA : cfg.colorB }}>{c.name}</strong> “{c.cry}”</div>
+        ) : null; })()}
         <Board cells={cells} justWon={[]} cfg={cfg} imgA={imgA} imgB={imgB} tick={tick} dimmed={!!winner} />
       </div>
+      {!winner && sideDom < 50 && priceFactor < 1 && (
+        <div style={{ ...S.handicapNote, position: "relative", marginTop: 10 }}>🔥 {t.discount(Math.round((1 - priceFactor) * 100))}</div>
+      )}
 
       <div style={{ ...S.byline ?? {}, position: "relative", textAlign: "center", fontFamily: FM, fontSize: 11, color: "#65626f", margin: "12px 0 10px" }}>
         {cfg.creator && <>{t.by} <strong>{cfg.creator}</strong> · 70/30</>}
@@ -445,7 +451,7 @@ function LiveInner({ duelId, demo, initialSide, initialTv, initialVertical }) {
           </div>
           <div style={S.sticky}>
             <button onClick={() => startBuy("blocks")} className="payPulse" disabled={plan.count === 0 || budget < MIN_BUY} style={{ ...S.pay, background: accent, color: pickText(accent), boxShadow: `0 12px 38px -12px ${accent}`, opacity: (plan.count === 0 || budget < MIN_BUY) ? 0.5 : 1 }}>
-              <span>{t.move_by} {isA ? cfg.a : cfg.b}</span><span style={S.payAmt}>{cur}{plan.spent.toFixed(2)}</span>
+              <span>{sideDom < 49 ? t.cta_losing(isA ? cfg.a : cfg.b) : sideDom > 51 ? t.cta_winning(isA ? cfg.a : cfg.b) : t.cta_tied(isA ? cfg.a : cfg.b)}</span><span style={S.payAmt}>{cur}{plan.spent.toFixed(2)}</span>
             </button>
           </div>
         </>
@@ -517,6 +523,7 @@ function LiveInner({ duelId, demo, initialSide, initialTv, initialVertical }) {
                 <div key={i} style={{ display: "flex", gap: 10, fontSize: 14.5, color: "#c4c1cd", lineHeight: 1.35 }}><span>{["1️⃣", "2️⃣", "3️⃣"][i]}</span><span>{w}</span></div>
               ))}
             </div>
+            <div style={{ marginTop: 12, padding: "9px 12px", background: "#0b0910", border: "1px solid #221F2B", borderRadius: 10, fontFamily: FM, fontSize: 12, textAlign: "center", color: "#EDE9E0" }}>{t.welcome_eq(`${cur}${MIN_BUY}`)}</div>
             <button onClick={() => { setWelcome(false); try { localStorage.setItem("duality_welcome", "1"); } catch {} }}
               style={{ ...S.sheetCta, background: INK, color: "#0B0A0F", marginTop: 14 }}>{t.welcome_cta}</button>
           </div>
