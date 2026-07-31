@@ -29,6 +29,7 @@ import Tv from "./duality/Tv";
 // (sem religião, sem marca registrada, sem risco com gateway). Ver CONCEITO.md.
 const DEFAULT = {
   title: "Gatos vs Cachorros", a: "Gatos", b: "Cachorros",
+  emojiA: "🐱", emojiB: "🐶",
   colorA: "#7C5CFF", colorB: "#FF9F1C", imgA: null, imgB: null,
   creator: "Duds Live",
   skin: "carvao",
@@ -41,14 +42,15 @@ export default function Duality() {
   useEffect(() => { setLang(detectLang()); }, []);
   // v3: a rota crítica abre NO produto — home primeiro; trailer é opcional
   const [screen, setScreen] = useState("home");
+  const [playSide, setPlaySide] = useState(null);
   const [cfg, setCfg] = useState(DEFAULT);
   const t = DICT[lang]; const money = MONEY[lang];
   return (
     <LangCtx.Provider value={{ t, lang, setLang, money }}>
       {screen === "trailer" ? <Trailer onEnter={() => setScreen("home")} />
-        : screen === "home" ? <Home onCreate={() => setScreen("create")} onPlay={() => setScreen("play")} onReplay={() => setScreen("trailer")} />
+        : screen === "home" ? <Home cfg={cfg} onCreate={() => setScreen("create")} onPlay={(side) => { setPlaySide(side || null); setScreen("play"); }} onReplay={() => setScreen("trailer")} />
           : screen === "create" ? <Create cfg={cfg} setCfg={setCfg} onLaunch={() => setScreen("play")} />
-            : <Play cfg={cfg} onBack={() => setScreen("home")} />}
+            : <Play cfg={cfg} initialSide={playSide} onBack={() => setScreen("home")} />}
     </LangCtx.Provider>
   );
 }
@@ -211,21 +213,31 @@ function MiniBattle() {
   );
 }
 
-function Home({ onCreate, onPlay, onReplay }) {
+function Home({ cfg, onCreate, onPlay, onReplay }) {
   const { t } = useT();
+  const pick = (side) => { try { localStorage.setItem("duality_welcome", "1"); } catch {} onPlay(side); };
   return (
     <div style={S.root}><style dangerouslySetInnerHTML={{ __html: FONTS + CSS }} />
       <div style={{ ...S.wrap, paddingTop: 20 }}>
         <div style={S.topRow}><div style={S.brand}>DUALITY</div><LangPicker /></div>
-        <div style={{ ...S.homeHero, margin: "18px 0 16px" }}>
-          <h1 style={S.homeH1}>{t.home_h1}</h1>
-          <p style={S.homeLead}>{t.home_lead}</p>
+        <div style={{ ...S.homeHero, margin: "18px 0 14px" }}>
+          <h1 style={S.homeH1}>{cfg.a} {t.or_word} {cfg.b}?</h1>
+          <p style={S.homeLead}>{t.home_prove}</p>
+        </div>
+        {/* a home JÁ É a primeira jogada: escolher o lado é um toque */}
+        <div style={{ ...S.eyebrow, textAlign: "center", marginBottom: 10 }}>{t.pick_a_side_label}</div>
+        <div style={S.sideBigRow}>
+          <button className="sideBig" onClick={() => pick("a")} style={{ ...S.sideBig, background: cfg.colorA, color: pickText(cfg.colorA), boxShadow: `0 14px 44px -14px ${cfg.colorA}` }}>
+            <span style={S.sideBigEmoji}>{cfg.emojiA || "◆"}</span>{cfg.a}
+          </button>
+          <button className="sideBig" onClick={() => pick("b")} style={{ ...S.sideBig, background: cfg.colorB, color: pickText(cfg.colorB), boxShadow: `0 14px 44px -14px ${cfg.colorB}` }}>
+            <span style={S.sideBigEmoji}>{cfg.emojiB || "◆"}</span>{cfg.b}
+          </button>
         </div>
         <div style={S.homeDemo}>
           <div style={S.homeDemoBadge}>{t.home_demo_badge}</div>
           <MiniBattle />
         </div>
-        <button style={S.homeCtaMain} onClick={onPlay}>{t.home_cta_play}</button>
         <button style={S.homeCtaAlt} onClick={onCreate}>➕ {t.home_cta_create}</button>
         {/* 3 verdades, em linguagem de gente — nada de jargão de mecânica */}
         <div style={S.homeFeatures}>
@@ -356,11 +368,11 @@ function Create({ cfg, setCfg, onLaunch }) {
 const Fld = ({ label, children }) => (<div style={{ marginBottom: 15 }}><div style={S.label}>{label}</div><div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>{children}</div></div>);
 
 /* ---------------- JOGAR ---------------- */
-function Play({ cfg, onBack }) {
+function Play({ cfg, initialSide, onBack }) {
   const { t, money } = useT();
   const cur = money.cur;
   const [cells, setCells] = useState(() => { const o = {}; for (let p = 0; p < GRID * GRID; p++) o[p] = { side: (p % GRID) < GRID / 2 ? "a" : "b", name: null, price: BASE, flair: null }; return o; });
-  const [side, setSide] = useState("a");
+  const [side, setSide] = useState(initialSide === "b" ? "b" : "a");
   const [budget, setBudget] = useState(10);
   const [name, setName] = useState("");
   const [flair, setFlair] = useState(FLAIRS[0]);
@@ -389,6 +401,7 @@ function Play({ cfg, onBack }) {
   const [combo, setCombo] = useState(0);
   const comboTimer = useRef(null);
   const [hype, setHype] = useState(null);          // { name, crew, cry, amount, side, eternal }
+  const [floatN, setFloatN] = useState(0);
   const [tv, setTv] = useState(false);
   const imgA = useRef(null), imgB = useRef(null);
 
@@ -431,6 +444,7 @@ function Play({ cfg, onBack }) {
     setScores(s => ({ ...s, [who]: (s[who] || 0) + list.length }));
     if (crewTag) setCrews(c => ({ ...c, [crewTag]: { ...(c[crewTag] || { tag: crewTag, side }), points: (c[crewTag]?.points || 0) + list.length } }));
     setJustWon(list.map(x => x.p)); setTimeout(() => setJustWon([]), 1000); setBump(b => b + 1);
+    setFloatN(0); setTimeout(() => setFloatN(list.length), 30); setTimeout(() => setFloatN(0), 1200);
   }
 
   // VALIDAÇÃO 24h — na produção o deadline vive no servidor (ver check-wins)
@@ -539,8 +553,8 @@ function Play({ cfg, onBack }) {
       {/* META COLETIVA — propósito pra jogada pequena */}
       {!winner && goal && (
         <div className="goalGlint" style={{ ...S.goalBar, position: "relative" }}>
-          <span style={S.goalIcon}>◎</span>
-          <span>{t.goal(goal.need, isA ? cfg.a : cfg.b, goal.pct)}</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={S.goalIcon}>◎</span><span>{t.goal(goal.need, isA ? cfg.a : cfg.b, goal.pct)}</span></div>
+          <div style={S.goalFill}><div style={{ height: "100%", width: `${Math.min(100, Math.round(sideCount / Math.ceil(total * goal.pct / 100) * 100))}%`, background: accent, transition: "width .6s ease" }} /></div>
         </div>
       )}
 
@@ -553,6 +567,7 @@ function Play({ cfg, onBack }) {
       )}
 
       <div style={{ position: "relative" }}>
+        {floatN > 0 && <div key={floatN + bump} className="floatUp" style={S.floatN}>🖌️ +{floatN}</div>}
         {(() => { const c = feed.find(x => x.cry); return c && !winner ? (
           <div className="feedItem" style={S.boardCry}>📣 <strong style={{ color: c.side === "a" ? cfg.colorA : cfg.colorB }}>{c.name}</strong> “{c.cry}”</div>
         ) : null; })()}
@@ -563,51 +578,6 @@ function Play({ cfg, onBack }) {
         <div style={{ ...S.handicapNote, position: "relative", marginTop: 10 }}>🔥 {t.discount(Math.round((1 - priceFactor) * 100))}</div>
       )}
 
-      {/* v3: regras viram consulta, não leitura obrigatória — a arena fala por si */}
-      <details className="howBox" style={{ ...S.diagram, position: "relative" }}>
-        <summary style={S.diagTitle}>{t.how}</summary>
-        <div style={{ ...S.diagSteps, marginTop: 12 }}>
-          {[t.step1, t.step2, t.step3, t.step4].map((s, i) => (
-            <div key={i} style={S.diagStep}><span style={{ ...S.diagIcon, color: ["#EDE9E0", "#EDE9E0", "#ffb84a", "#5ad07a"][i] }}>{["🖌", "⇄", "⚡", "⬇"][i]}</span><span style={S.diagText}>{bold(s)}</span></div>
-          ))}
-        </div>
-        <div style={S.diagRuler}>
-          <div style={{ display: "flex", borderRadius: 99, overflow: "hidden" }}><div style={{ height: 8, width: "80%", background: "#2a2730" }} /><div style={{ height: 8, width: "20%", background: "#ffb84a" }} /></div>
-          <div style={S.diagRulerLabel}><span>{t.normal_zone}</span><span style={{ color: "#ffb84a" }}>{t.win_zone}</span></div>
-        </div>
-      </details>
-
-      {/* RANKING DE EQUIPES */}
-      {crewRanking.length > 0 && (
-        <div style={{ ...S.rank, position: "relative" }}>
-          <div style={S.rankTitle}>{t.crew_head}</div>
-          {crewRanking.map((c, i) => (
-            <div key={c.tag} style={S.rankRow}>
-              <span style={S.rankPos}>{i + 1}</span>
-              <span style={{ ...S.rankName, fontFamily: FD, fontWeight: 800, color: c.side === "a" ? cfg.colorA : cfg.colorB }}>⚑ {c.tag}</span>
-              <span style={S.rankVal}>{c.points}</span>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {ranking.length > 0 && (
-        <div style={{ ...S.rank, position: "relative" }}><div style={S.rankTitle}>{t.contributors}</div>{ranking.map(([n, v], i) => (<div key={n} style={S.rankRow}><span style={S.rankPos}>{i + 1}</span><span style={S.rankName}>{n}</span><span style={S.rankVal}>{v}</span></div>))}</div>
-      )}
-
-      {/* MURAL — gritos de guerra pagos, com camadas */}
-      <div style={{ ...S.feed, position: "relative" }}>
-        {feed.length === 0 ? <div style={S.feedEmpty}>{t.feed_empty}</div> : feed.map(f => (
-          <div key={f.ts} className={f.tier >= 2 ? "cry2" : "feedItem"}
-            style={{ ...S.feedItem, ...(f.me ? S.feedMe : {}), ...(f.tier >= 2 ? { ...S.feedTier2, borderColor: (f.side === "a" ? cfg.colorA : cfg.colorB) + "88" } : {}) }}>
-            <span style={{ color: f.side === "a" ? cfg.colorA : cfg.colorB }}>{f.eternal ? "★" : "▲"}</span>
-            {f.crew && <span style={{ ...S.crewTag, marginLeft: 6, color: f.side === "a" ? cfg.colorA : cfg.colorB }}>{f.crew}</span>}
-            <strong style={{ margin: "0 5px" }}>{f.name}</strong>
-            {f.eternal ? "★" : `+${f.qty}`} · {f.side === "a" ? cfg.a : cfg.b}
-            {f.cry && <span style={{ ...S.feedCry, ...(f.tier >= 2 ? S.feedTier2Cry : {}) }}>“{f.cry}”</span>}
-          </div>
-        ))}
-      </div>
 
       {!winner && (
         <>
@@ -691,6 +661,53 @@ function Play({ cfg, onBack }) {
           </div>
         </>
       )}
+
+      {/* RANKING DE EQUIPES */}
+      {crewRanking.length > 0 && (
+        <div style={{ ...S.rank, position: "relative" }}>
+          <div style={S.rankTitle}>{t.crew_head}</div>
+          {crewRanking.map((c, i) => (
+            <div key={c.tag} style={S.rankRow}>
+              <span style={S.rankPos}>{i + 1}</span>
+              <span style={{ ...S.rankName, fontFamily: FD, fontWeight: 800, color: c.side === "a" ? cfg.colorA : cfg.colorB }}>⚑ {c.tag}</span>
+              <span style={S.rankVal}>{c.points}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {ranking.length > 0 && (
+        <div style={{ ...S.rank, position: "relative" }}><div style={S.rankTitle}>{t.contributors}</div>{ranking.map(([n, v], i) => (<div key={n} style={S.rankRow}><span style={S.rankPos}>{i + 1}</span><span style={S.rankName}>{n}</span><span style={S.rankVal}>{v}</span></div>))}</div>
+      )}
+
+      {/* MURAL — gritos de guerra pagos, com camadas */}
+      <div style={{ ...S.feed, position: "relative" }}>
+        {feed.length === 0 ? <div style={S.feedEmpty}>{t.feed_empty}</div> : feed.map(f => (
+          <div key={f.ts} className={f.tier >= 2 ? "cry2" : "feedItem"}
+            style={{ ...S.feedItem, ...(f.me ? S.feedMe : {}), ...(f.tier >= 2 ? { ...S.feedTier2, borderColor: (f.side === "a" ? cfg.colorA : cfg.colorB) + "88" } : {}) }}>
+            <span style={{ color: f.side === "a" ? cfg.colorA : cfg.colorB }}>{f.eternal ? "★" : "▲"}</span>
+            {f.crew && <span style={{ ...S.crewTag, marginLeft: 6, color: f.side === "a" ? cfg.colorA : cfg.colorB }}>{f.crew}</span>}
+            <strong style={{ margin: "0 5px" }}>{f.name}</strong>
+            {f.eternal ? "★" : `+${f.qty}`} · {f.side === "a" ? cfg.a : cfg.b}
+            {f.cry && <span style={{ ...S.feedCry, ...(f.tier >= 2 ? S.feedTier2Cry : {}) }}>“{f.cry}”</span>}
+          </div>
+        ))}
+      </div>
+
+
+      {/* v3: regras viram consulta, não leitura obrigatória — a arena fala por si */}
+      <details className="howBox" style={{ ...S.diagram, position: "relative" }}>
+        <summary style={S.diagTitle}>{t.how}</summary>
+        <div style={{ ...S.diagSteps, marginTop: 12 }}>
+          {[t.step1, t.step2, t.step3, t.step4].map((s, i) => (
+            <div key={i} style={S.diagStep}><span style={{ ...S.diagIcon, color: ["#EDE9E0", "#EDE9E0", "#ffb84a", "#5ad07a"][i] }}>{["🖌", "⇄", "⚡", "⬇"][i]}</span><span style={S.diagText}>{bold(s)}</span></div>
+          ))}
+        </div>
+        <div style={S.diagRuler}>
+          <div style={{ display: "flex", borderRadius: 99, overflow: "hidden" }}><div style={{ height: 8, width: "80%", background: "#2a2730" }} /><div style={{ height: 8, width: "20%", background: "#ffb84a" }} /></div>
+          <div style={S.diagRulerLabel}><span>{t.normal_zone}</span><span style={{ color: "#ffb84a" }}>{t.win_zone}</span></div>
+        </div>
+      </details>
 
       {winner && (
         <div style={S.winOverlay}><div className="winIn" style={S.winCard}>

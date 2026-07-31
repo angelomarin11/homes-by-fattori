@@ -54,6 +54,10 @@ export const CSS = `
 input,button,textarea{font-family:inherit}input::placeholder,textarea::placeholder{color:#55525f}
 button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid #fff8;outline-offset:2px}
 .amtChip{transition:transform .12s ease, border-color .12s ease}
+.sideBig{transition:transform .15s cubic-bezier(.3,1.6,.4,1)}
+.sideBig:active{transform:scale(.95)}
+.floatUp{animation:floatUp 1.1s cubic-bezier(.2,.8,.3,1) forwards}
+@keyframes floatUp{0%{opacity:0;transform:translate(-50%,10px) scale(.7)}20%{opacity:1;transform:translate(-50%,-6px) scale(1.15)}100%{opacity:0;transform:translate(-50%,-70px) scale(1)}}
 .amtChip:active{transform:scale(.94)}
 details.howBox summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between}
 details.howBox summary::-webkit-details-marker{display:none}
@@ -157,7 +161,12 @@ export const S = {
   quote: { position: "relative", height: 14, borderRadius: 99, overflow: "hidden", display: "flex", marginBottom: 8, boxShadow: "inset 0 0 0 1px #ffffff14" },
   winMark: { position: "absolute", top: 0, bottom: 0, width: 2, zIndex: 1 },
   cursor: { position: "absolute", top: -3, width: 2, height: 20, background: "#fff", boxShadow: "0 0 14px #fff", transition: "left .7s cubic-bezier(.34,1.3,.5,1)" },
-  goalBar: { display: "flex", alignItems: "center", gap: 8, fontFamily: FM, fontSize: 11, color: DIM, marginBottom: 14, padding: "7px 11px", background: "#100e16", border: `1px solid ${LINE}`, borderRadius: 9 },
+  goalBar: { display: "flex", flexDirection: "column", gap: 6, fontFamily: FM, fontSize: 11, color: DIM, marginBottom: 14, padding: "8px 11px", background: "#100e16", border: `1px solid ${LINE}`, borderRadius: 9 },
+  goalFill: { height: 4, borderRadius: 99, background: "#221F2B", overflow: "hidden" },
+  sideBigRow: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, margin: "4px 0 18px" },
+  sideBig: { padding: "20px 8px", borderRadius: 18, border: "none", fontFamily: FD, fontWeight: 900, fontSize: 19, cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 6, letterSpacing: -.3 },
+  sideBigEmoji: { fontSize: 40, lineHeight: 1 },
+  floatN: { position: "absolute", left: "50%", top: "40%", fontFamily: FD, fontWeight: 900, fontSize: 44, color: "#fff", textShadow: "0 2px 24px #000", zIndex: 5, pointerEvents: "none" },
   goalIcon: { color: "#ffb84a", fontSize: 13 },
   holdBanner: { textAlign: "center", border: "2px solid", borderRadius: 14, padding: "12px 16px", marginBottom: 16, background: "#15131c" },
   holdText: { fontFamily: FC, fontSize: 14, color: INK },
