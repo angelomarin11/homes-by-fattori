@@ -154,48 +154,100 @@ function Trailer({ onEnter }) {
 /* ---------------- HOME (demo honesta, rotulada) ---------------- */
 // A batalha aparece EM MOVIMENTO nos primeiros segundos — mini-tabuleiro vivo,
 // rotulado como demonstração, sem bloquear o CTA.
-const MB_COLS = 16, MB_ROWS = 9;
-const MB_NAMES = ["Maria", "Pedro", "Ana", "Lucas", "Bia", "João", "Duda", "Rafa"];
+const MB_COLS = 16, MB_ROWS = 9, MB_N = MB_COLS * MB_ROWS;
+// Elenco fixo da encenação: os mesmos nomes lutam, viram e entram pro monumento.
+const MB_CAST_A = ["Maria", "Ana", "Bia", "Duda"];
+const MB_CAST_B = ["Pedro", "Lucas", "João", "Rafa"];
+const MB_EVEN = () => Array.from({ length: MB_N }, (_, i) => (i % MB_COLS) < MB_COLS / 2 ? "a" : "b");
+// A demo conta o experimento INTEIRO, em loop: ATO 1 a escolha (50/50) →
+// ATO 2 a guerra com virada roteirizada (Gatos avançam, Cachorros viram) →
+// ATO 3 o clímax (80% dominado, contagem 3·2·1) → monumento com os nomes →
+// recomeça. Começo, meio e fim — ninguém precisa imaginar como termina.
 function MiniBattle() {
   const { t } = useT();
-  const [cells, setCells] = useState(() => Array.from({ length: MB_COLS * MB_ROWS }, (_, i) => (i % MB_COLS) < MB_COLS / 2 ? "a" : "b"));
-  const [painters, setPainters] = useState([]);   // a promessa VISÍVEL: nomes cravando blocos
-  const target = useRef(62);
+  const [cells, setCells] = useState(MB_EVEN);
+  const [act, setAct] = useState(1);          // 1 escolha · 2 guerra · 3 clímax · 4 monumento
+  const [count, setCount] = useState(3);
+  const [painters, setPainters] = useState([]);
+  const cellsRef = useRef(null);
+  const totals = useRef({});                  // nome → blocos pintados (vira o monumento)
   useEffect(() => {
-    const iv = setInterval(() => {
-      if (Math.random() < 0.18) target.current = 25 + Math.random() * 50;
-      let painted = 0, side = "a";
-      setCells(prev => {
-        const next = [...prev];
-        const cA = next.filter(c => c === "a").length;
-        const pct = (cA / next.length) * 100;
-        const goA = pct < target.current;
-        const opp = goA ? "b" : "a", me = goA ? "a" : "b";
+    let alive = true;
+    const timers = [];
+    const later = (fn, ms) => { timers.push(setTimeout(() => { if (alive) fn(); }, ms)); };
+    let step = 0;
+    const war = () => {
+      const s = step++;
+      // roteiro da virada: Gatos empurram até ~66%… e os Cachorros tomam tudo até 84%
+      const targetA = s < 9 ? 66 : 16;
+      const next = [...cellsRef.current];
+      const pctA = next.filter(c => c === "a").length / MB_N * 100;
+      if (pctA > targetA + 1 || pctA < targetA - 1) {
+        const me = pctA < targetA ? "a" : "b", opp = me === "a" ? "b" : "a";
         const cand = [...next.keys()].filter(i => next[i] === opp)
           .sort((x, y) => Math.abs((x % MB_COLS) - MB_COLS / 2) - Math.abs((y % MB_COLS) - MB_COLS / 2));
-        const take = cand.slice(0, 2 + (Math.random() * 3 | 0));
+        const take = cand.slice(0, 3 + (s % 3));
         take.forEach(i => { next[i] = me; });
-        painted = take.length; side = me;
-        return next;
-      });
-      if (painted > 0 && Math.random() < 0.6) {
-        const nm = MB_NAMES[Math.random() * MB_NAMES.length | 0];
-        setPainters(p => [{ nm, side, n: painted, ts: Date.now() + Math.random() }, ...p].slice(0, 2));
+        cellsRef.current = next; setCells(next);
+        if (take.length) {
+          const cast = me === "a" ? MB_CAST_A : MB_CAST_B;
+          const nm = cast[s % cast.length];
+          totals.current[nm] = (totals.current[nm] || 0) + take.length;
+          setPainters(p => [{ nm, side: me, n: take.length, ts: s }, ...p].slice(0, 2));
+        }
+      } else if (s >= 9) {
+        // 80%+ dominado — ATO 3: contagem pra vitória, depois o monumento
+        setAct(3); setCount(3);
+        later(() => setCount(2), 1000);
+        later(() => setCount(1), 2000);
+        later(() => setAct(4), 3000);
+        later(play, 9500);
+        return;
       }
-    }, 420);
-    return () => clearInterval(iv);
+      later(war, 460);
+    };
+    const play = () => {
+      step = 0; totals.current = {};
+      cellsRef.current = MB_EVEN();
+      setCells(cellsRef.current); setPainters([]); setCount(3); setAct(1);
+      later(() => { setAct(2); war(); }, 3200);
+    };
+    play();
+    return () => { alive = false; timers.forEach(clearTimeout); };
   }, []);
-  const pctA = Math.round(cells.filter(c => c === "a").length / cells.length * 100);
+  const pctA = Math.round(cells.filter(c => c === "a").length / MB_N * 100);
+  const top3 = Object.entries(totals.current).sort((x, y) => y[1] - x[1]).slice(0, 3);
+  const actLine = act === 1 ? t.demo_act1 : act === 2 ? t.demo_act2 : act === 3 ? t.demo_act3(count) : null;
   return (
     <>
+      <div key={act === 3 ? "c" + count : "act" + act} className="feedItem"
+        style={{ textAlign: "center", fontFamily: FM, fontSize: 11, letterSpacing: .4, minHeight: 16, marginBottom: 6, color: act === 3 ? "#FF9F1C" : "#8b8799", fontWeight: act === 3 ? 700 : 400 }}>
+        {actLine}
+      </div>
       <div style={S.homeDemoMkt}>
         <span style={{ color: "#7C5CFF", fontFamily: FM, fontWeight: 700, fontSize: 24 }}>🐱 {pctA}%</span>
         <span style={{ color: DIM, fontSize: 12, fontFamily: FM }}>Gatos × Cachorros</span>
         <span style={{ color: "#FF9F1C", fontFamily: FM, fontWeight: 700, fontSize: 24 }}>{100 - pctA}% 🐶</span>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: `repeat(${MB_COLS},1fr)`, borderRadius: 10, overflow: "hidden", margin: "10px 0", aspectRatio: `${MB_COLS}/${MB_ROWS}` }}>
-        {cells.map((c, i) => <div key={i} style={{ background: c === "a" ? "#7C5CFF" : "#FF9F1C", transition: "background .35s" }} />)}
-      </div>
+      {act === 4 ? (
+        /* ATO FINAL — o monumento: vencedor + nomes cravados na história */
+        <div className="winIn" style={{ aspectRatio: `${MB_COLS}/${MB_ROWS}`, margin: "10px 0", borderRadius: 10, border: "1px solid rgba(255,159,28,.4)", background: "radial-gradient(ellipse at 50% 0%, rgba(255,159,28,.14), transparent 65%), #12101a", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 7, padding: 10 }}>
+          <div style={{ fontFamily: FD, fontWeight: 800, fontSize: "clamp(17px,4.6vw,24px)", color: "#FF9F1C", letterSpacing: .5 }}>{t.demo_winner("Cachorros")} 🐶</div>
+          <div style={{ fontFamily: FM, fontSize: 10.5, color: DIM, letterSpacing: .5 }}>{t.demo_history}</div>
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
+            {top3.map(([nm, n], i) => (
+              <div key={nm} style={{ fontFamily: FM, fontSize: 12, color: "#e8e6ef" }}>
+                {["🥇", "🥈", "🥉"][i]} <strong>{nm}</strong> · {n} 🖌️
+              </div>
+            ))}
+          </div>
+          <div style={{ fontFamily: FM, fontSize: 10.5, color: "#8b8799" }}>{t.demo_next}</div>
+        </div>
+      ) : (
+        <div style={{ display: "grid", gridTemplateColumns: `repeat(${MB_COLS},1fr)`, borderRadius: 10, overflow: "hidden", margin: "10px 0", aspectRatio: `${MB_COLS}/${MB_ROWS}`, ...(act === 3 ? { boxShadow: "0 0 0 2px #FF9F1C" } : {}) }}>
+          {cells.map((c, i) => <div key={i} style={{ background: c === "a" ? "#7C5CFF" : "#FF9F1C", transition: "background .35s" }} />)}
+        </div>
+      )}
       <div style={{ ...S.quote, margin: 0, height: 10 }}>
         <div style={{ width: `${pctA}%`, background: "#7C5CFF", transition: "width .5s ease" }} />
         <div style={{ width: `${100 - pctA}%`, background: "#FF9F1C", transition: "width .5s ease" }} />
