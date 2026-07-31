@@ -164,6 +164,7 @@ export const S = {
   holdNum: { fontFamily: FM, fontWeight: 700, fontSize: 40, lineHeight: 1, margin: "2px 0" },
   holdHint: { fontFamily: FM, fontSize: 10, color: DIM, letterSpacing: 1 },
   boardWrap: { borderRadius: 16, overflow: "hidden" },
+  boardCry: { position: "absolute", top: 10, left: 10, maxWidth: "86%", background: "#0b0a0fd9", border: "1px solid #ffffff26", borderRadius: 10, padding: "7px 11px", fontSize: 12.5, color: "#EDE9E0", zIndex: 3, backdropFilter: "blur(4px)", display: "flex", gap: 6, alignItems: "baseline", overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" },
   board: { width: "100%", display: "block", aspectRatio: "1" },
   diagram: { background: CARD, border: `1px solid ${LINE}`, borderRadius: 14, padding: "14px 16px", margin: "12px 0 16px" },
   diagTitle: { fontFamily: FM, fontSize: 10, letterSpacing: 2, color: DIM, marginBottom: 12 },
