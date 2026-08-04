@@ -1,21 +1,28 @@
-# Playbook de vendas — Radar Conformidade para certificadoras
+# Playbook de vendas — Radar Conformidade
 
-> Documento interno. Como encontrar, abordar e fechar a primeira certificadora.
+> Documento interno. Como encontrar, abordar e fechar o primeiro cliente.
 > Material de apresentação: `docs/deck-certificadoras.pptx` (notas do
 > apresentador em cada slide).
+>
+> ⚠ **PRÉ-REQUISITO INEGOCIÁVEL:** nenhuma abordagem antes dos 3 gates de
+> `docs/decisao-go-nogo.md` fecharem em verde (coleta real, qualidade do
+> sinal, demanda declarada). Vender capacidade não demonstrada queima um
+> mercado que tem poucas dezenas de compradores — e todos se conhecem.
 
 ## 1. Quem é o comprador (ICP)
 
 Em ordem de prioridade:
 
-1. **OCDs — Organismos de Certificação Designados pela ANATEL.** São poucos
-   (dezenas), listados publicamente no site da ANATEL ("Organismos de
-   Certificação Designados"). Vendem exatamente o serviço que o relatório
-   recomenda. Ticket alto, dor de prospecção real.
-2. **Consultorias de homologação/certificação regulatória.** Mais numerosas,
-   menores, mais famintas por lead — decisão mais rápida, ticket de licença
-   menor. Bom ponto de partida se os OCDs demorarem.
-3. **Laboratórios de ensaio acreditados** que também intermediam certificação.
+1. **Consultorias de homologação/certificação regulatória.** Numerosas,
+   agressivas comercialmente, sem restrição de imparcialidade, decisão rápida.
+   **É o alvo nº 1** — vivem exatamente de originar processos de homologação.
+2. **Laboratórios de ensaio** que intermediam certificação.
+3. **OCDs — Organismos de Certificação Designados pela ANATEL.** Ticket alto,
+   mas **cuidado**: OCDs acreditados operam sob requisito de imparcialidade
+   (ISO/IEC 17065) — prospecção ativa apontando "irregularidades" de
+   não-clientes pode ser vetada pelo compliance deles. Abordar somente pela
+   diretoria comercial, enquadrando o produto como *inteligência de mercado*,
+   e aceitar que a taxa de recusa aqui será alta por razão estrutural.
 
 Dentro da empresa, o alvo é **quem sente a meta**: sócio-diretor (nas
 pequenas/médias) ou head comercial (nas maiores). Evitar começar pelo técnico —
@@ -40,12 +47,13 @@ Antes do primeiro contato, rodar o scan em 3–5 lojas do nicho que aquela
 certificadora atende (ex.: se ela certifica áudio/vídeo, escanear lojas de
 eletrônicos) e abrir a conversa já com o resultado:
 
-> Assunto: 6 lojas de eletrônicos com anúncios irregulares (Res. 780/2025)
+> Assunto: N marcas vendendo produto de RF sem homologação no seu segmento
 >
 > [Nome], analisei o catálogo de algumas lojas do Mercado Livre no segmento
-> que a [Certificadora] atende. Só nessas primeiras, encontrei N anúncios de
-> produtos de RF **sem código de homologação** — R$ X/mês de faturamento em
-> risco de remoção. Cada um é um cliente em potencial de vocês.
+> que a [Consultoria] atende. Encontrei **N anúncios críticos de marcas
+> identificáveis** — fabricantes/importadores que precisam homologar (filtrei
+> fora os revendedores de genéricos, que trocam de fornecedor em vez de
+> certificar). Faturamento em risco estimado entre R$ X e R$ Y por mês.
 >
 > Montei o levantamento num relatório de 1 página. Posso te mostrar em 15
 > minutos como transformamos isso num canal de vendas para a [Certificadora]?
@@ -82,7 +90,9 @@ Nunca mais de um argumento por mensagem. O número em R$ é sempre o gancho.
 
 | Objeção | Resposta |
 |---|---|
-| "Já temos comercial/prospecção" | Ótimo — isso não substitui seu comercial, alimenta ele. A pergunta é: sua equipe hoje sabe QUAIS lojas têm produto irregular e QUANTO isso custa para cada uma? |
+| "Já temos comercial/prospecção" | Ótimo — isso não substitui seu comercial, alimenta ele. A pergunta é: sua equipe hoje sabe QUAIS marcas têm produto irregular e QUANTO isso custa para cada uma? |
+| "Nosso inbound já traz cliente (o ML avisa o vendedor)" | Verdade — e é por isso que o filtro importa: o inbound traz quem JÁ foi removido; o radar mostra quem é o PRÓXIMO, antes do concorrente de vocês chegar. E qualifica: marca própria, não revendedor. |
+| "Somos OCD, não podemos parecer parciais" | O material é diagnóstico informativo com fontes públicas e limites declarados — sem juízo conclusivo. Mas se o compliance vetar, entendemos: este produto serve melhor a consultorias (e podemos conversar sobre a versão inteligência de mercado). |
 | "Isso é legal? É scraping?" | Só dados públicos: API oficial do ML e dados abertos da ANATEL. O relatório declara fontes e limites em todo documento — feito para proteger a sua marca. |
 | "E se o dado estiver errado / falso positivo?" | O sistema é conservador por desenho: dúvida nunca vira 'crítico'. E o processo prevê validação humana antes da abordagem — item do piloto. |
 | "E se o Mercado Livre mudar a API?" | O risco existe e é nosso, não seu: a licença é mensal, sem fidelidade. E o modelo funciona também com colheita assistida das páginas públicas. |

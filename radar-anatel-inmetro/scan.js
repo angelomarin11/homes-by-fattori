@@ -25,7 +25,7 @@ import { realClient, mockClient } from './src/ml.js';
 import { classifyByRules } from './src/rules.js';
 import { classifyWithLLM } from './src/llm.js';
 import { loadAnatelBase, findHomologationCode } from './src/anatel.js';
-import { resolveClassification, decideStatus, estimateMonthlyRevenue } from './src/triage.js';
+import { resolveClassification, decideStatus, estimateMonthlyRevenue, leadProfile } from './src/triage.js';
 import { renderReport } from './src/report.js';
 import { loadBrand } from './src/brand.js';
 import { summarizeScan, renderLeadsHtml, renderLeadsCsv } from './src/leads.js';
@@ -101,6 +101,7 @@ async function scanSeller(ml, sellerQuery, args, base) {
     }
     Object.assign(it, decideStatus(it.cls, it.codeInfo, base));
     it.revenue = estimateMonthlyRevenue(it, details.get(it.id));
+    it.leadProfile = leadProfile(it, details.get(it.id));
   }
 
   const meta = { scannedAt: Date.now(), truncated, llmUsed: llmResults.size > 0 };

@@ -5,6 +5,7 @@
 import { escapeHtml as esc, formatBRL } from './util.js';
 import { formatCode } from './anatel.js';
 import { DEFAULT_BRAND, contactLine } from './brand.js';
+import { REVENUE_RANGE } from './triage.js';
 
 const STATUS_META = {
   critico: { label: 'CRÍTICO', emoji: '🔴', color: '#b91c1c', bg: '#fef2f2', border: '#fecaca' },
@@ -14,9 +15,14 @@ const STATUS_META = {
 
 const REG_LABEL = { anatel: 'ANATEL', inmetro: 'INMETRO', ambos: 'ANATEL + INMETRO', nao: '—', incerto: 'Incerta' };
 
+const roundBRL = (v) => Math.round(v / 100) * 100;
+export function formatRange(v) {
+  if (v == null || v === 0) return 'n/d';
+  return `${formatBRL(roundBRL(v * REVENUE_RANGE.low))} – ${formatBRL(roundBRL(v * REVENUE_RANGE.high))}`;
+}
 function fmtMonthly(r) {
   if (r?.monthlyRevenue == null) return 'n/d';
-  return `${formatBRL(r.monthlyRevenue)}/mês`;
+  return `≈ ${formatBRL(roundBRL(r.monthlyRevenue))}/mês`;
 }
 
 function itemRow(it) {
@@ -166,11 +172,11 @@ export function renderReport({ seller, items, base, meta, brand = DEFAULT_BRAND 
   </div>
 
   <div class="risco">
-    <div style="font-size:13px; text-transform:uppercase; letter-spacing:.6px; opacity:.8">Faturamento mensal em risco (anúncios críticos)</div>
-    <div class="valor">${formatBRL(riscoCritico)}</div>
+    <div style="font-size:13px; text-transform:uppercase; letter-spacing:.6px; opacity:.8">Faturamento mensal em risco (anúncios críticos) — estimativa em faixa</div>
+    <div class="valor">${formatRange(riscoCritico)} <span style="font-size:16px;font-weight:400;opacity:.8">/mês</span></div>
     <div class="desc">
-      Estimativa: preço × vendas mensais médias dos anúncios 🔴 — o faturamento que deixaria de existir se esses anúncios forem removidos pela plataforma ou pela fiscalização.
-      ${riscoAtencao > 0 ? `Anúncios 🟡 somam exposição adicional de <strong>${formatBRL(riscoAtencao)}/mês</strong>.` : ''}
+      Ordem de grandeza: preço × vendas mensais médias dos anúncios 🔴. As vendas informadas pela API do Mercado Livre são valores referenciais (faixas) e a média é calculada sobre toda a vida do anúncio — por isso apresentamos faixa, não valor exato.
+      ${riscoAtencao > 0 ? `Anúncios 🟡 somam exposição adicional estimada de <strong>${formatRange(riscoAtencao)}/mês</strong>.` : ''}
       ${semEstimativa > 0 ? `${semEstimativa} anúncio(s) sem dados de venda suficientes ficaram fora da soma.` : ''}
     </div>
   </div>
@@ -191,6 +197,7 @@ export function renderReport({ seller, items, base, meta, brand = DEFAULT_BRAND 
   <div class="metodo">
     <p><strong>Base regulatória:</strong> Resolução ANATEL nº 780/2025 — obriga a exibição do código de homologação em anúncios de produtos de telecomunicações/RF e estabelece responsabilidade solidária entre marketplace e vendedor, com remoção de anúncios irregulares. Produtos das categorias INMETRO exigem certificação compulsória.</p>
     <p><strong>Como analisamos:</strong> (1) coleta dos anúncios ativos via API pública do Mercado Livre; (2) classificação por regras de categoria/palavras-chave${meta.llmUsed ? ' e por modelo de linguagem para casos ambíguos' : ''}; (3) busca do código de homologação nos atributos, título e descrição do anúncio; (4) conferência do código na base pública de produtos homologados da ANATEL${base.disponivel ? ` (${esc(base.origem)})` : ' (indisponível nesta execução)'}.</p>
+    <p><strong>Limites das estimativas:</strong> as quantidades de venda expostas pela API pública do Mercado Livre são referenciais (faixas), e a média mensal assume vendas uniformes desde a criação do anúncio — os valores de faturamento são ordem de grandeza, não medição. A conferência do código de homologação verifica a existência do código na base pública da ANATEL; a correspondência exata código ↔ produto exige verificação manual.</p>
     <p><strong>Semáforo:</strong> 🔴 produto de RF identificado com alta confiança e sem código válido exibido; 🟡 qualquer situação que exija confirmação humana (classificação incerta, código não localizado na base, categoria INMETRO); 🟢 sem pendência identificada. Em caso de dúvida o item é sempre rebaixado para 🟡, nunca promovido a 🔴.</p>
   </div>
 

@@ -1,7 +1,11 @@
-# Radar Conformidade — Proposta de licenciamento para certificadora (OCD)
+# Radar Conformidade — Proposta de licenciamento (consultorias e certificadoras)
 
 > Documento-base para a conversa comercial. Valores são **referência de
 > negociação**, não tabela final.
+>
+> ⚠ Uso interno: só apresentar após os 3 gates de `decisao-go-nogo.md`
+> fecharem em verde. Alvo prioritário: consultorias de homologação (OCDs
+> acreditados têm restrição de imparcialidade — ver playbook).
 
 ## O contexto (por que agora)
 
@@ -30,8 +34,9 @@ Uma **máquina de leads qualificados**, com a sua marca:
    camadas (regras + IA), busca do código de homologação no anúncio e
    conferência na base pública de produtos homologados da ANATEL.
 3. **Saída A — ranking de prospecção** (`leads.html` + `leads.csv` p/ CRM):
-   lojas ordenadas por oportunidade — nº de anúncios críticos e **faturamento
-   mensal em risco** (a dor, já quantificada em R$).
+   lojas ordenadas por propensão — **críticos com marca identificável**
+   (fabricante/importador, quem de fato contrata homologação) e faturamento
+   mensal em risco **em faixa estimada**, com método e limites declarados.
 4. **Saída B — relatório individual white-label**: documento profissional com
    a sua marca, cores e contato, pronto para enviar ao lojista como
    *diagnóstico gratuito*. O caminho de regularização aponta para o seu

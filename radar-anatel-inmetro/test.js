@@ -76,7 +76,11 @@ const leadsCsv = fs.readFileSync(path.join(ROOT, 'cache', 'relatorios-test', 'le
 for (const [name, doc, needle] of [
   ['leads.html', leadsHtml, 'Ranking de prospecção'],
   ['leads.html', leadsHtml, 'TECHSOM.ELETRONICOS'],
+  ['leads.html', leadsHtml, 'marca identificável'],
+  ['leads.html', leadsHtml, 'SoundMax'],
+  ['leads.csv', leadsCsv, 'criticos_marca_identificavel'],
   ['leads.csv', leadsCsv, 'faturamento_risco_mensal_brl'],
+  ['relatório (faixa)', branded, 'estimativa em faixa'],
 ]) {
   if (!doc.includes(needle)) {
     failures++;

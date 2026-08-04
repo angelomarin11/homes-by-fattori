@@ -53,7 +53,7 @@ export function decideStatus(cls, codeInfo, base) {
       if (v === 'valido') {
         return {
           status: 'ok',
-          statusMotivo: `Código de homologação exibido (${codeInfo.fonte}) e localizado na base ANATEL.`,
+          statusMotivo: `Código de homologação exibido (${codeInfo.fonte}) e localizado na base ANATEL. Atenção: a verificação confere a EXISTÊNCIA do código na base, não a correspondência exata com este produto — conferência produto a produto é manual.`,
           verificacao: v,
         };
       }
@@ -75,7 +75,7 @@ export function decideStatus(cls, codeInfo, base) {
       return {
         status: 'critico',
         statusMotivo:
-          'Produto de RF/telecom sem código de homologação ANATEL visível no anúncio — exigência da Res. 780/2025; anúncios assim vêm sendo removidos.',
+          'Produto de RF/telecom sem código de homologação ANATEL visível no anúncio — exigência da Res. 780/2025; anúncios sem código estão sujeitos a remoção pela plataforma.',
       };
     }
     return {
@@ -95,7 +95,16 @@ export function decideStatus(cls, codeInfo, base) {
   return { status: 'atencao', statusMotivo: 'Situação não determinada — verificação manual.' };
 }
 
-/** Estimativa de faturamento mensal: sold_quantity / meses ativos. */
+/**
+ * Estimativa de faturamento mensal: sold_quantity / meses ativos.
+ *
+ * HONESTIDADE DO NÚMERO: a API pública do ML retorna sold_quantity apenas
+ * como valor REFERENCIAL (faixas), e a média é vitalícia (assume vendas
+ * uniformes desde a criação do anúncio). Portanto isto é ORDEM DE GRANDEZA,
+ * não medição — o relatório apresenta em faixa, nunca como valor pontual.
+ */
+export const REVENUE_RANGE = { low: 0.6, high: 1.4 };
+
 export function estimateMonthlyRevenue(item, detail, now = Date.now()) {
   const sold = item.sold_quantity ?? detail?.sold_quantity ?? null;
   const price = item.price ?? detail?.price ?? null;
@@ -108,4 +117,30 @@ export function estimateMonthlyRevenue(item, detail, now = Date.now()) {
     monthlyRevenue: monthlySales != null ? monthlySales * price : null,
     lifetimeRevenue: sold * price,
   };
+}
+
+/**
+ * Perfil do lead para a certificadora/consultoria: quem paga homologação é
+ * fabricante/importador com marca própria — revendedor de produto genérico
+ * tende a trocar de fornecedor, não a certificar.
+ *
+ * Proxy honesto (limitação documentada): marca IDENTIFICÁVEL no atributo do
+ * anúncio ≠ marca própria do vendedor. É um filtro de propensão, não uma
+ * certeza — a qualificação final é humana.
+ */
+const GENERIC_BRAND_MARKERS = [
+  '', 'generica', 'generico', 'genérica', 'genérico', 'sem marca', 'oem',
+  'universal', 'compativel', 'compatível', 'no brand', 'nao informado',
+  'não informado', 'importado', 'similar',
+];
+
+export function leadProfile(item, detail) {
+  const attrs = [...(item.attributes ?? []), ...((detail?.attributes) ?? [])];
+  const brandAttr = attrs.find((a) => a?.id === 'BRAND' || /(^|\b)marca\b/i.test(a?.name ?? ''));
+  const brand = String(brandAttr?.value_name ?? '').trim();
+  const b = brand.toLowerCase();
+  const generic = !b || GENERIC_BRAND_MARKERS.some((m) => b === m || (m && b.startsWith(m)));
+  return generic
+    ? { perfil: 'revendedor-generico', marca: brand || null }
+    : { perfil: 'marca-identificavel', marca: brand };
 }

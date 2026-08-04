@@ -12,7 +12,11 @@ export function summarizeScan({ seller, items, reportFile }) {
   const criticos = by('critico');
   const atencao = by('atencao');
   const sum = (list) => list.reduce((acc, i) => acc + (i.revenue?.monthlyRevenue ?? 0), 0);
-  const topCritico = [...criticos].sort(
+  // Qualificação: quem paga homologação é fabricante/importador com marca —
+  // crítico de marca identificável vale muito mais que revendedor de genérico
+  // (que tende a trocar de fornecedor em vez de certificar).
+  const qualificados = criticos.filter((i) => i.leadProfile?.perfil === 'marca-identificavel');
+  const topCritico = [...(qualificados.length ? qualificados : criticos)].sort(
     (a, b) => (b.revenue?.monthlyRevenue ?? 0) - (a.revenue?.monthlyRevenue ?? 0)
   )[0];
   return {
@@ -20,30 +24,45 @@ export function summarizeScan({ seller, items, reportFile }) {
     permalink: seller.permalink ?? '',
     totalItens: items.length,
     criticos: criticos.length,
+    criticosQualificados: qualificados.length,
     atencao: atencao.length,
     ok: by('ok').length,
     riscoMensal: sum(criticos),
+    riscoQualificado: sum(qualificados),
     exposicaoAtencao: sum(atencao),
     topCritico: topCritico ? topCritico.title : '',
+    marcas: [...new Set(qualificados.map((i) => i.leadProfile?.marca).filter(Boolean))].slice(0, 3),
     reportFile,
   };
 }
 
-/** Score de priorização comercial: dor quantificada primeiro. */
+/**
+ * Score de priorização comercial: críticos QUALIFICADOS (marca identificável)
+ * dominam — são os únicos com propensão real a contratar homologação.
+ */
 export function leadScore(l) {
-  return l.riscoMensal + l.criticos * 500 + l.exposicaoAtencao * 0.2;
+  return (
+    (l.riscoQualificado ?? 0) * 2 +
+    (l.criticosQualificados ?? 0) * 3000 +
+    l.riscoMensal * 0.3 +
+    l.criticos * 200
+  );
 }
 
 export function renderLeadsCsv(leads) {
   const header = [
-    'nickname', 'permalink', 'total_itens', 'criticos', 'atencao', 'ok',
-    'faturamento_risco_mensal_brl', 'exposicao_atencao_mensal_brl', 'top_item_critico', 'relatorio',
+    'nickname', 'permalink', 'total_itens', 'criticos', 'criticos_marca_identificavel',
+    'marcas_detectadas', 'atencao', 'ok',
+    'faturamento_risco_mensal_brl', 'risco_qualificado_mensal_brl',
+    'exposicao_atencao_mensal_brl', 'top_item_critico', 'relatorio',
   ];
   const cell = (v) => `"${String(v ?? '').replaceAll('"', '""')}"`;
   const rows = leads.map((l) =>
     [
-      l.nickname, l.permalink, l.totalItens, l.criticos, l.atencao, l.ok,
-      l.riscoMensal.toFixed(2), l.exposicaoAtencao.toFixed(2), l.topCritico, l.reportFile,
+      l.nickname, l.permalink, l.totalItens, l.criticos, l.criticosQualificados ?? 0,
+      (l.marcas ?? []).join(', '), l.atencao, l.ok,
+      l.riscoMensal.toFixed(2), (l.riscoQualificado ?? 0).toFixed(2),
+      l.exposicaoAtencao.toFixed(2), l.topCritico, l.reportFile,
     ].map(cell).join(';')
   );
   return '﻿' + [header.join(';'), ...rows].join('\n');
@@ -53,17 +72,20 @@ export function renderLeadsHtml(leads, { brand = DEFAULT_BRAND, scannedAt = Date
   const sorted = [...leads].sort((a, b) => leadScore(b) - leadScore(a));
   const totalRisco = sorted.reduce((s, l) => s + l.riscoMensal, 0);
   const totalCriticos = sorted.reduce((s, l) => s + l.criticos, 0);
+  const totalQualificados = sorted.reduce((s, l) => s + (l.criticosQualificados ?? 0), 0);
   const dataScan = new Date(scannedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
 
+  const fmtRange = (v) => (v ? `${formatBRL(Math.round((v * 0.6) / 100) * 100)}–${formatBRL(Math.round((v * 1.4) / 100) * 100)}` : 'n/d');
   const row = (l, i) => `
   <tr>
     <td class="num">${i + 1}</td>
     <td><strong>${esc(l.nickname)}</strong>${l.permalink ? ` <a class="small" href="${esc(l.permalink)}" target="_blank" rel="noopener">loja ↗</a>` : ''}
-      ${l.topCritico ? `<div class="muted small">maior dor: ${esc(l.topCritico)}</div>` : ''}</td>
+      ${l.topCritico ? `<div class="muted small">maior dor: ${esc(l.topCritico)}</div>` : ''}
+      ${l.marcas?.length ? `<div class="muted small">marcas: ${esc(l.marcas.join(', '))}</div>` : ''}</td>
+    <td class="num qual">${l.criticosQualificados ?? 0}</td>
     <td class="num crit">${l.criticos}</td>
     <td class="num warn">${l.atencao}</td>
-    <td class="num">${l.totalItens}</td>
-    <td class="num"><strong>${formatBRL(l.riscoMensal)}</strong>/mês</td>
+    <td class="num"><strong>${fmtRange(l.riscoMensal)}</strong><span class="muted">/mês</span></td>
     <td>${l.reportFile ? `<a href="${esc(l.reportFile)}">abrir ↗</a>` : '—'}</td>
   </tr>`;
 
@@ -91,6 +113,7 @@ export function renderLeadsHtml(leads, { brand = DEFAULT_BRAND, scannedAt = Date
   td { padding: 10px 12px; border-top:1px solid var(--line); vertical-align: top; }
   td.num { text-align: right; white-space: nowrap; }
   td.crit { color:#b91c1c; font-weight:700; }
+  td.qual { color:#166534; font-weight:700; }
   td.warn { color:#a16207; }
   a { color: var(--brand); text-decoration:none; }
   .muted { color: var(--muted); }
@@ -103,25 +126,27 @@ export function renderLeadsHtml(leads, { brand = DEFAULT_BRAND, scannedAt = Date
   <header>
     <div class="logo">${esc(brand.nome)}</div>
     <h1>Ranking de prospecção — compliance ANATEL/INMETRO</h1>
-    <div class="sub">${leads.length} loja(s) analisada(s) em ${dataScan} · ordenado por oportunidade (itens críticos × faturamento em risco)</div>
+    <div class="sub">${leads.length} loja(s) analisada(s) em ${dataScan} · ordenado por propensão (críticos com marca identificável primeiro)</div>
   </header>
 
   <div class="kpis">
-    <div class="kpi"><div class="n">${leads.length}</div><div class="l">lojas escaneadas</div></div>
-    <div class="kpi"><div class="n" style="color:#b91c1c">${totalCriticos}</div><div class="l">anúncios críticos (leads de certificação)</div></div>
-    <div class="kpi"><div class="n">${formatBRL(totalRisco)}</div><div class="l">faturamento mensal em risco somado — a dor que abre a conversa</div></div>
+    <div class="kpi"><div class="n" style="color:#166534">${totalQualificados}</div><div class="l">críticos com marca identificável — os leads com propensão real a certificar</div></div>
+    <div class="kpi"><div class="n" style="color:#b91c1c">${totalCriticos}</div><div class="l">anúncios críticos no total (inclui revendedores de genéricos)</div></div>
+    <div class="kpi"><div class="n" style="font-size:20px">${leads.length ? `${formatBRL(Math.round((totalRisco * 0.6) / 100) * 100)} – ${formatBRL(Math.round((totalRisco * 1.4) / 100) * 100)}` : 'n/d'}</div><div class="l">faturamento mensal em risco somado (faixa estimada)</div></div>
   </div>
 
   <table>
-    <thead><tr><th>#</th><th>Loja</th><th>🔴</th><th>🟡</th><th>Itens</th><th>Risco mensal</th><th>Relatório</th></tr></thead>
+    <thead><tr><th>#</th><th>Loja</th><th>🔴 c/ marca</th><th>🔴 total</th><th>🟡</th><th>Risco mensal (faixa)</th><th>Relatório</th></tr></thead>
     <tbody>${sorted.map(row).join('')}</tbody>
   </table>
 
   ${errors.length ? `<p class="note">⚠ Falhas de coleta: ${errors.map((e) => esc(e)).join(' · ')}</p>` : ''}
 
   <p class="note">
-    Uso comercial sugerido: enviar ao lojista o relatório individual (com sua marca) como diagnóstico gratuito —
-    o número de faturamento em risco abre a conversa e o caminho de regularização aponta para o seu serviço.<br>
+    <strong>Como ler:</strong> priorize os críticos <em>com marca identificável</em> — quem certifica é fabricante/importador com
+    marca; revendedor de produto genérico tende a trocar de fornecedor, não a certificar. "Marca identificável" é um
+    filtro automático de propensão (proxy pelo atributo de marca do anúncio) — a qualificação final é humana.<br>
+    Valores de risco são estimativa em faixa: as vendas expostas pela API do ML são referenciais e a média é vitalícia.<br>
     Relatório informativo baseado em dados públicos. Não constitui parecer jurídico. Análise automatizada sujeita a
     falsos positivos — validar antes de abordar o lead.
   </p>

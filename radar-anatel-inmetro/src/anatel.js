@@ -155,11 +155,36 @@ async function downloadCsv() {
  * O parser tolera ; ou , como separador e localiza a coluna pelo header
  * (contendo "homolog"). Encoding: tenta UTF-8; se aparecer � em massa, latin1.
  */
+/** Divide uma linha CSV respeitando aspas (nomes de empresa contêm ; e ,). */
+function splitCsvLine(line, sep) {
+  const out = [];
+  let cur = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') {
+      if (inQuotes && line[i + 1] === '"') {
+        cur += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (ch === sep && !inQuotes) {
+      out.push(cur);
+      cur = '';
+    } else {
+      cur += ch;
+    }
+  }
+  out.push(cur);
+  return out;
+}
+
 export function parseCsvCodes(text) {
   const firstNl = text.indexOf('\n');
-  const header = text.slice(0, firstNl);
+  const header = text.slice(0, firstNl).replace(/\r$/, '');
   const sep = (header.match(/;/g)?.length ?? 0) >= (header.match(/,/g)?.length ?? 0) ? ';' : ',';
-  const cols = header.split(sep).map((c) => c.trim().toLowerCase().replace(/^"|"$/g, ''));
+  const cols = splitCsvLine(header, sep).map((c) => c.trim().toLowerCase().replace(/^"|"$/g, ''));
   let idx = cols.findIndex((c) => c.includes('homolog'));
   if (idx < 0) idx = cols.findIndex((c) => c.includes('certificado'));
   if (idx < 0) idx = 0;
@@ -169,10 +194,10 @@ export function parseCsvCodes(text) {
   while (pos < text.length) {
     let end = text.indexOf('\n', pos);
     if (end < 0) end = text.length;
-    const line = text.slice(pos, end);
+    const line = text.slice(pos, end).replace(/\r$/, '');
     pos = end + 1;
     if (!line.trim()) continue;
-    const cell = (line.split(sep)[idx] ?? '').replace(/"/g, '').trim();
+    const cell = (splitCsvLine(line, sep)[idx] ?? '').replace(/"/g, '').trim();
     const digits = cell.replace(/\D/g, '');
     if (digits.length >= 11 && digits.length <= 12) {
       codes.add(digits.padStart(12, '0'));
