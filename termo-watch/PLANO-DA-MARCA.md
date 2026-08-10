@@ -52,6 +52,29 @@ diferencial é vir com **jogos embarcados** (Termo, genius/simon, forca,
   dedicados ao jogo (grade 5×6 de mini-segmentos para o Termo, ícones de
   acerto etc.) por custo de ferramental baixo.
 
+## Estudo de caso — Farr + Swit (Retro Digital "Mix Tape")
+
+Microbrand americana de Elmhurst/Chicago (3 fundadores: Farrand, Paetzold,
+Switalski) que mostra o playbook funcionando:
+
+- **Construíram audiência antes:** começaram (~2015) com relógios automáticos
+  de movimento suíço montados nos EUA; anos de presença em fóruns
+  (WatchUSeek) e imprensa especializada (aBlogtoWatch, Time Bum).
+- **O digital retrô deles é módulo genérico chinês de prateleira** — review do
+  Time Bum: "não diz quem fez o módulo porque honestamente não importa".
+  Caixa plástica 35mm, CR2016, luz teal, 50m WR. Zero engenharia própria.
+- **Todo o valor está no design e na narrativa:** estética anos 80 inspirada
+  em fitas cassete/Memorex, edições numeradas como discos ("Mix Tape Vol. 1",
+  "B Sides Vol. 2 XL"), preço de impulso (US$ 34,99; 2 por US$ 59,99),
+  lançamentos em "drops".
+
+**Tradução para o nosso plano:** a linha deles é exatamente o nível
+"semi-custom SKMEI" da tabela abaixo — realizável hoje, com MOQ ~100–300,
+sem escrever uma linha de código. Isso vira uma **Fase 1.5**: uma linha
+retrô-digital BR com módulo de prateleira para gerar caixa, marca e
+audiência, enquanto o módulo com jogos (o diferencial que a Farr + Swit NÃO
+tem) amadurece como produto-âncora da Fase 2.
+
 ## SKMEI na prática — números reais (pesquisa ago/2026)
 
 A SKMEI (Guangdong Skmei Watch Manufacture Co., Ltd., Guangzhou) vende por
