@@ -15,6 +15,13 @@ diferencial é vir com **jogos embarcados** (Termo, genius/simon, forca,
 
 - Relógios F-91W + Sensor Watch montados, com firmware da marca (menu de
   jogos próprio, animação de boot com o nome da marca).
+- **Rota SKMEI desde já:** o módulo Casio 593 (do F-91W) encaixa na caixa do
+  **SKMEI 1123** (clone de metal do A158W) — relatos da comunidade confirmam a
+  troca nesse sentido (o inverso, módulo SKMEI em caixa Casio, não cabe).
+  Ou seja: caixa SKMEI 1123 + chassi do módulo 593 + placa Sensor Watch =
+  **relógio SKMEI rodando o Termo**. O SKMEI 1412 (clone do F-91W em resina) é
+  outro candidato a testar. Validar encaixe, alinhamento de botões e zebra
+  strip do LCD com 1 unidade antes de comprar lote.
 - **Atenção jurídica:** revender um Casio modificado é legal (produto usado /
   customizado), mas **não pode** apresentar o produto como se fosse da marca
   própria escondendo que a base é Casio, nem remover/encobrir a marca Casio e
@@ -44,6 +51,49 @@ diferencial é vir com **jogos embarcados** (Termo, genius/simon, forca,
 - **LCD custom** é a arma secreta do design: dá pra desenhar segmentos
   dedicados ao jogo (grade 5×6 de mini-segmentos para o Termo, ícones de
   acerto etc.) por custo de ferramental baixo.
+
+## SKMEI na prática — números reais (pesquisa ago/2026)
+
+A SKMEI (Guangdong Skmei Watch Manufacture Co., Ltd., Guangzhou) vende por
+três canais: [skmei.com](https://www.skmei.com/),
+[skmeifactory.com](https://www.skmeifactory.com/) e lojas oficiais no Alibaba
+([gzskmei](https://gzskmei.en.alibaba.com/)). Níveis de customização e MOQs
+típicos anunciados:
+
+| Nível | O que muda | MOQ típico | Observação |
+|---|---|---|---|
+| Atacado de modelo de linha | nada (sem logo) | 2–20 pçs | preço unitário ~US$ 2–8 |
+| Logo próprio (OEM) | logo no mostrador, tampa, embalagem | ~100 pçs (anúncios citam 10 pçs para "trial production") | serviço de arte incluso |
+| Semi-custom | cores, pulseira, mostrador novo em caixa existente | 100–300 pçs | negociar direto |
+| Full custom (molde novo) | caixa/design exclusivo | 500–3000 pçs | molde ~US$ 500–2000, prazo 45–90 dias |
+
+**Ponto crítico — firmware:** a SKMEI **não grava firmware seu** nos módulos
+de linha. Os módulos digitais deles usam chip COB de máscara (programado na
+fundição do chip); mudar o comportamento do relógio exigiria um chip novo em
+volume de dezenas de milhares. Portanto, para o jogo existir num SKMEI, o
+módulo tem que ser **seu** (MCU regravável tipo SAM L22), e a SKMEI entra com
+caixa, pulseira, montagem, embalagem e logística. Fábricas de módulo/LCD
+fazem semi-custom com MOQ de 50–100 módulos e ferramental de LCD custom na
+faixa de US$ 300–800.
+
+**Perguntas para mandar à SKMEI (em inglês, via Alibaba/skmeifactory):**
+
+1. What is the MOQ and unit price for model 1123 (metal) / 1412 (resin)
+   without logo, and with our logo on dial + caseback?
+2. Can you supply **cases only** (case, strap, buttons, gaskets, glass),
+   without the module, at lower MOQ? What price?
+3. Can you assemble watches using **our own electronic module** (we supply
+   tested modules; you do casing, QC, water resistance test, packaging)?
+   What is the assembly fee per unit and MOQ?
+4. Which of your case designs accept a module of the same dimensions as the
+   Casio 593 module?
+5. Tooling cost, MOQ and lead time for a fully custom case design?
+6. Do you provide IP protection (NNN agreement) for custom designs?
+
+A pergunta 3 é o modelo de negócio-alvo: **módulo seu + casco/montagem SKMEI**.
+Se a SKMEI não aceitar montar com módulo de terceiro, alternativas na mesma
+região fazem isso (buscar "watch assembly service" / module factories em
+Dongguan e Shenzhen via Alibaba e Made-in-China).
 
 ## Burocracia Brasil
 
